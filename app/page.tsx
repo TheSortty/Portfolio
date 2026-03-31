@@ -799,13 +799,13 @@ export default function Portfolio() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="project-card bg-[var(--bg-card)] rounded-none border border-[var(--border)] overflow-hidden group hover:-translate-y-2 transition-transform duration-300"
+                  className="project-card bg-[var(--bg-card)] rounded-none border border-[var(--border)] overflow-hidden group hover:-translate-y-2 transition-transform duration-300 flex flex-col h-full"
                 >
-                  <div className="project-image w-full relative overflow-hidden border-b border-[var(--border)] bg-transparent">
+                  <div className="project-image aspect-video w-full relative overflow-hidden bg-[var(--bg-darker)] flex items-center justify-center">
                     {project.image ? (
-                      <img src={project.image} alt={project.name} className="w-full h-auto block" />
+                      <img src={project.image} alt={project.name} className="w-full h-full object-cover origin-top scale-[1.35] group-hover:scale-[1.40] transition-transform duration-500" />
                     ) : (
-                      <div className="project-placeholder">
+                      <div className="project-placeholder py-12 flex justify-center w-full">
                         <Code2 size={48} className="text-[var(--primary)] opacity-50" />
                       </div>
                     )}
@@ -815,12 +815,12 @@ export default function Portfolio() {
                       </div>
                     </div>
                   </div>
-                  <div className="project-content p-6">
-                    <h3 className="project-title text-xl font-bold text-[var(--text-primary)] mb-4">{project.name}</h3>
-                    <p className="project-description text-[var(--text-secondary)] mb-6 line-clamp-3">
+                  <div className="p-12 flex flex-col flex-1">
+                    <h3 className="project-title text-3xl font-bold text-[var(--primary)] mb-6">{project.name}</h3>
+                    <p className="project-desc text-[var(--text-secondary)] mb-12 flex-1 leading-loose text-[1.05rem]">
                       {project.desc}
                     </p>
-                    <div className="project-tags">
+                    <div className="project-tags flex flex-wrap gap-4 mt-auto pt-8 border-t border-[var(--border)]/20">
                       {project.tags.map((tag, i) => (
                         <span key={i} className="tag">{tag}</span>
                       ))}
@@ -842,41 +842,81 @@ export default function Portfolio() {
                 <span className="title-bracket">/&gt;</span>
               </h2>
             </div>
-            <p className="text-[var(--text-secondary)] mb-12 max-w-2xl text-lg">{t.services.desc}</p>
+            <p className="text-[var(--text-secondary)] mb-16 max-w-2xl text-lg leading-relaxed">{t.services.desc}</p>
             
-            <div className="grid lg:grid-cols-3 gap-6">
-              {t.services.categories.map((cat: any, idx: number) => (
-                <div key={idx} className="bg-[var(--bg-card)] rounded-none border border-[var(--border)] overflow-hidden hover:border-[var(--primary)] transition-colors duration-300">
-                  <div className="p-8 border-b border-[var(--border)] bg-[var(--bg-dark)]">
-                    <h3 className="text-xl font-bold text-[var(--primary)]">{cat.name}</h3>
-                  </div>
-                  <div className="p-8 flex flex-col gap-6">
-                    {cat.items.map((item: any, i: number) => (
-                      <div key={i} className="flex justify-between md:items-center gap-4 group flex-col md:flex-row border-b border-[var(--border)] pb-3 last:border-0 last:pb-0">
-                        <span className="text-[var(--text-secondary)] text-sm group-hover:text-[var(--text-primary)] transition-colors pr-2 leading-tight flex-1">{item.name}</span>
-                        <div className="text-left md:text-right flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-0 whitespace-nowrap">
-                          <span className="text-xs text-[var(--text-secondary)] line-through opacity-70">
-                            ${(item.original).toLocaleString('es-AR')}
-                          </span>
-                          <span className="text-lg font-bold text-[var(--cyan)]">
-                            ${(item.current).toLocaleString('es-AR')}
-                          </span>
-                        </div>
+            {/* ═══ MEGA MODAL ═══ */}
+            <div className="relative border-2 border-[var(--border)] bg-[var(--bg-card)] shadow-[0_0_60px_rgba(16,185,129,0.06)] overflow-hidden">
+
+              {/* Top gradient accent bar */}
+              <div className="h-1.5 w-full bg-gradient-to-r from-[var(--primary)] via-[var(--cyan)] to-[var(--purple)]"></div>
+
+              {/* Decorative leaf SVGs */}
+              <Leaf className="absolute top-8 right-8 w-32 h-32 text-[var(--primary)] opacity-[0.04] rotate-[30deg] pointer-events-none" />
+              <Leaf className="absolute bottom-24 left-6 w-24 h-24 text-[var(--cyan)] opacity-[0.04] -rotate-[20deg] pointer-events-none" />
+              <Leaf className="absolute top-1/2 right-1/3 w-40 h-40 text-[var(--purple)] opacity-[0.02] rotate-[60deg] pointer-events-none" />
+
+              {/* 3-Column Grid */}
+              <div className="grid lg:grid-cols-3 relative z-10">
+                {t.services.categories.map((cat: any, idx: number) => (
+                  <div 
+                    key={idx} 
+                    className={`flex flex-col ${idx < t.services.categories.length - 1 ? 'border-b lg:border-b-0 lg:border-r border-[var(--border)]' : ''}`}
+                  >
+                    {/* Category Header */}
+                    <div className="px-12 py-12 bg-gradient-to-b from-black/30 to-transparent border-b border-[var(--border)] flex flex-col items-center justify-center">
+                      <div className="flex items-center justify-center gap-4">
+                        <Leaf size={22} className="text-[var(--primary)] opacity-50" />
+                        <h3 className="text-[0.9rem] font-black text-[var(--primary)] uppercase tracking-[0.3em] text-center">
+                          {cat.name}
+                        </h3>
+                        <Leaf size={22} className="text-[var(--primary)] opacity-50 scale-x-[-1]" />
                       </div>
-                    ))}
+                    </div>
+                    
+                    {/* Service Items */}
+                    <div className="px-12 py-12 flex flex-col gap-0 flex-1">
+                      {cat.items.map((item: any, i: number) => (
+                        <div 
+                          key={i} 
+                          className={`group py-8 ${i < cat.items.length - 1 ? 'border-b border-[var(--border)]/20' : ''}`}
+                        >
+                          {/* Service Name — centered */}
+                          <p className="text-[var(--text-secondary)] text-[1rem] leading-relaxed group-hover:text-[var(--text-primary)] transition-colors text-center mb-5">
+                            {item.name}
+                          </p>
+                          {/* Prices — centered */}
+                          <div className="flex items-center justify-center gap-4">
+                            <span className="text-xs text-[var(--text-muted)] line-through">
+                              ${(item.original).toLocaleString('es-AR')}
+                            </span>
+                            <span className="text-xl font-black tracking-tight text-[var(--cyan)]">
+                              ${(item.current).toLocaleString('es-AR')}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+
+              {/* ═══ Footer CTA ═══ */}
+              <div className="border-t-2 border-[var(--border)] bg-gradient-to-b from-black/50 to-black/30 px-12 py-20 flex flex-col items-center gap-6 relative z-20">
+                <p className="text-[var(--text-muted)] text-sm tracking-[0.2em] font-medium uppercase mb-4">
+                  {t.services.title === 'Services' ? '— Get a quote now —' : '— Obtené tu presupuesto ahora —'}
+                </p>
+                <a 
+                  href="https://wa.me/5492612407277?text=Hola%20Gonzalo!%20Vengo%20de%20tu%20portfolio%20web%20y%20estoy%20muy%20interesado%20en%20tus%20Servicios%20T%C3%A9cnicos.%20%C2%BFPodr%C3%ADas%20darme%20m%C3%A1s%20informaci%C3%B3n%3F" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="btn btn-primary text-lg px-14 py-5 inline-flex items-center gap-3 shadow-[0_0_25px_rgba(16,185,129,0.25)] hover:scale-105 hover:shadow-[0_0_50px_rgba(16,185,129,0.45)] transition-all font-bold group"
+                >
+                  <MessageCircle size={26} className="group-hover:-rotate-12 transition-transform duration-300" />
+                  {t.services.title === 'Services' ? 'Request via WhatsApp' : 'Solicitar por WhatsApp'}
+                </a>
+              </div>
             </div>
 
-            <div className="mt-16 text-center relative z-10">
-              <a href="https://wa.me/5492612407277?text=Hola%20Gonzalo!%20Vengo%20de%20tu%20portfolio%20web%20y%20estoy%20muy%20interesado%20en%20tus%20Servicios%20T%C3%A9cnicos.%20%C2%BFPodr%C3%ADas%20darme%20m%C3%A1s%20informaci%C3%B3n%3F" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-xl px-10 py-5 inline-flex items-center gap-3 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-105 hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] transition-all font-bold group">
-                <MessageCircle size={28} className="group-hover:-rotate-12 transition-transform duration-300" />
-                {t.services.title === 'Services' ? 'Request Service via WhatsApp' : 'Solicitar Servicio por WhatsApp'}
-              </a>
-            </div>
-            
-            <Leaf className="absolute -bottom-20 -right-20 w-[600px] h-[600px] text-[var(--primary)] opacity-[0.02] rotate-45 pointer-events-none z-0" />
           </div>
         </section>
 
