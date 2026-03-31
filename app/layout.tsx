@@ -14,8 +14,11 @@ const firaCode = Fira_Code({
 });
 
 export const metadata: Metadata = {
-  title: 'Portfolio',
-  description: 'My Professional Portfolio',
+  title: 'Gonzalo Murguia - Técnico & Desarrollador',
+  description: 'Portfolio profesional de Gonzalo Murguia. Servicios técnicos y desarrollo web.',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {

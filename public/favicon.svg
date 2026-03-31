@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#C3D1C8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    
+    <!-- G orgánica -->
+    <path d="M330 160
+             C250 80, 120 140, 120 260
+             C120 380, 260 420, 330 320
+             M330 260
+             C280 260, 260 260, 240 260" />
+    
+    <!-- M fluida -->
+    <path d="M240 260
+             C260 220, 300 200, 340 260
+             C360 300, 380 280, 400 240" />
+    
+    <!-- base curva -->
+    <path d="M160 340
+             C220 380, 300 380, 360 340" />
+    
+    <!-- hoja -->
+    <path d="M350 150
+             C370 120, 400 130, 380 170
+             C360 190, 340 180, 350 150 Z" />
+    
+  </g>
+</svg>

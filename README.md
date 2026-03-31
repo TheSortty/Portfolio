@@ -1,20 +1,31 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Gonzalo Murguia - Técnico IT y Desarrollador Freelance
 
-# Run and deploy your AI Studio app
+¡Hola! Soy Gonzalo Murguia, un profesional apasionado por la tecnología. Con más de 4 años de experiencia, me especializo en ofrecer soluciones técnicas integrales, abarcando desde el diagnóstico y mantenimiento de hardware hasta el desarrollo de infraestructuras web y aplicaciones de software.
 
-This contains everything you need to run your app locally.
+## Sobre Mí
 
-View your app in AI Studio: https://ai.studio/apps/9f56bdc7-5146-4b9f-b7f3-aacde8b9c901
+Mi enfoque se basa en resolver problemas de manera eficiente, optimizando procesos y entregando resultados de calidad. Mi perfil combina a la perfección:
+- **Técnico y Soporte IT**: Experiencia profunda en reparación y optimización de computadoras (PC y Notebooks), configuración de redes, diagnóstico de hardware, servidores (Linux/Windows) y soporte a usuarios.
+- **Desarrollador Freelance**: Construcción de plataformas modernas, rápidas y funcionales, manejando un stack sólido: React, TypeScript, Node.js, Python (FastAPI) y soluciones de automatización.
 
-## Run Locally
+Mi objetivo es garantizar a mis clientes que su tecnología (ya sea física o digital) trabaje para ellos, y no al revés.
 
-**Prerequisites:**  Node.js
+## Sobre este Portfolio
 
+Este proyecto es mi carta de presentación digital. Fue estructurado no solo para mostrar mi trayectoria y mis proyectos de software (como *ideon.ar* o *siendoHome*), sino también para servir como un **catálogo en vivo** de mis servicios técnicos presenciales y remotos.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### 🛠️ Tecnologías y Construcción
+El portfolio fue desarrollado desde cero priorizando la performance y un diseño moderno (UI/UX) premium:
+- **Core:** Next.js (React) con TypeScript.
+- **Estilizado:** Tailwind CSS, aplicando un diseño Dark Mode con paletas de colores neón (Cyan, Primary) y efectos interactivos.
+- **Animaciones:** Framer Motion para asegurar transiciones suaves al hacer scroll y hover sobre los elementos.
+- **Internacionalización:** Arquitectura multilenguaje (`en` y `es`) integrada en objetos TypeScript.
+- **Iconografía:** Lucide React para asegurar íconos vectoriales livianos.
+
+### ✨ Características Destacadas recientes
+- Inclusión de un listado interactivo de **Servicios IT** con precios promocionales, categorizados lógicamente.
+- Renderizado condicional de la grilla de proyectos utilizando proporciones (*aspect-video*) para capturas de pantalla de los desarrollos web.
+- Refactorización de componentes para asegurar SEO, jerarquía y accesibilidad semántica.
+
+## Contacto
+¡Si buscás dar vida a un nuevo proyecto web, o necesitas reparar un de tus equipos, podés utilizar los links de contacto dentro de la web!

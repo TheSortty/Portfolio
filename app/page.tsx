@@ -17,7 +17,9 @@ import {
   ChevronRight,
   Database,
   Layout,
-  Server
+  Server,
+  MessageCircle,
+  Leaf
 } from 'lucide-react';
 import { motion, animate, stagger } from 'motion/react';
 
@@ -28,6 +30,7 @@ const translations = {
       skills: 'Skills',
       experience: 'Experience',
       projects: 'Projects',
+      services: 'Services',
       contact: 'Contact'
     },
     hero: {
@@ -61,11 +64,11 @@ const translations = {
       fulltime: 'Full-time',
       jobs: [
         {
-          title: 'Freelance Technician',
+          title: 'Technician & Freelance Developer',
           company: 'Self-Employed / Summit S.A.',
-          desc: 'Developer of the "siendoHome" web application and IT Administrator. Specialized in technological infrastructure management (networks, Linux, Windows) and providing comprehensive technical support. Collaborated with Summit S.A. providing solutions for ecosystem optimization.',
+          desc: 'IT Technician since 2021 and Freelance Developer since September 2025, highlighting the "ideon" and "siendoHome" projects. Specialized in technological infrastructure management (networks, Linux, Windows) and comprehensive technical support.',
           achievements: [
-            'Developed and maintained the siendoHome web application',
+            'Developed and deployed the siendoHome and ideon platforms',
             'Managed Linux and Windows server infrastructure',
             'Provided remote and on-site technical support'
           ]
@@ -98,13 +101,52 @@ const translations = {
           name: 'siendoHome',
           url: 'https://siendohome.com',
           desc: 'Web application developed to manage and optimize specific services. Built with a focus on scalability and performance.',
-          tags: ['TypeScript', 'Node.js', 'Linux']
+          tags: ['TypeScript', 'Node.js', 'Linux'],
+          image: '/IMAGEN-SIENDOHOME.png'
         },
         {
           name: 'ideon.ar',
           url: 'https://ideon.ar',
           desc: 'Comprehensive web platform providing technological solutions. Focuses on robust infrastructure and seamless user experience.',
-          tags: ['Web Development', 'Infrastructure', 'FastAPI']
+          tags: ['Web Development', 'Infrastructure', 'FastAPI'],
+          image: '/IMAGEN-IDEON.png'
+        }
+      ]
+    },
+    services: {
+      title: 'Services',
+      desc: 'Professional technical solutions for computer equipment and networks. Discounted promotional prices.',
+      categories: [
+        {
+          name: 'Base Support & Diagnostics',
+          items: [
+            { name: 'Diagnostics / Review', original: 16564, current: 10790 },
+            { name: 'Remote Connection x 1 HR', original: 13251, current: 8590 },
+            { name: 'Home Visit x 1 HR', original: 29816, current: 19390 },
+            { name: 'Emergency Home Visit', original: 57974, current: 37690 },
+            { name: 'Router / Access Point Configuration', original: 36441, current: 23690 }
+          ]
+        },
+        {
+          name: 'Software & Optimization',
+          items: [
+            { name: 'OS Format & Install w/o BackUp', original: 57974, current: 37690 },
+            { name: 'New Equipment Initialization', original: 49691, current: 32290 },
+            { name: 'Windows Startup Repair', original: 43762, current: 28490 },
+            { name: 'Software Cleaning & Malware Removal', original: 29816, current: 19390 },
+            { name: 'Drivers Installation', original: 19877, current: 12990 },
+            { name: 'Commercial / OpenSource Programs', original: 16564, current: 10790 }
+          ]
+        },
+        {
+          name: 'Hardware Maintenance',
+          items: [
+            { name: 'Physical Clean + Format + BackUp + SSD', original: 66169, current: 42990 },
+            { name: 'Basic PC Build from Scratch', original: 82820, current: 53890 },
+            { name: 'Deep Hardware Clean + Thermal Paste', original: 29816, current: 19390 },
+            { name: 'Screen or Flex Replacement (Notebooks)', original: 41411, current: 26990 },
+            { name: 'Keyboard Replacement (Notebooks)', original: 24846, current: 16190 }
+          ]
         }
       ]
     },
@@ -129,6 +171,7 @@ const translations = {
       skills: 'Habilidades',
       experience: 'Experiencia',
       projects: 'Proyectos',
+      services: 'Servicios',
       contact: 'Contacto'
     },
     hero: {
@@ -162,11 +205,11 @@ const translations = {
       fulltime: 'Tiempo completo',
       jobs: [
         {
-          title: 'Técnico Freelance',
+          title: 'Técnico y Desarrollador Freelance',
           company: 'Independiente / Summit S.A.',
-          desc: 'Desarrollador del aplicativo web "siendoHome" y Administrador IT. Me especializo en la gestión de infraestructura tecnológica (redes, Linux y Windows) y en brindar soporte técnico integral. Colaboré activamente con Summit S.A. aportando soluciones para la optimización de su ecosistema.',
+          desc: 'Técnico IT desde 2021 y Desarrollador Freelance desde Septiembre 2025, destacando los proyectos "ideon" y "siendoHome". Me especializo en infraestructura tecnológica (redes, Linux, Windows) y soporte técnico integral.',
           achievements: [
-            'Desarrollo y mantenimiento de la aplicación web siendoHome',
+            'Desarrollo e implementación de las plataformas siendoHome e ideon',
             'Gestión de infraestructura de servidores Linux y Windows',
             'Soporte técnico integral remoto y presencial'
           ]
@@ -199,13 +242,52 @@ const translations = {
           name: 'siendoHome',
           url: 'https://siendohome.com',
           desc: 'Aplicación web desarrollada para gestionar y optimizar servicios específicos. Construida con un enfoque en escalabilidad y rendimiento.',
-          tags: ['TypeScript', 'Node.js', 'Linux']
+          tags: ['TypeScript', 'Node.js', 'Linux'],
+          image: '/IMAGEN-SIENDOHOME.png'
         },
         {
           name: 'ideon.ar',
           url: 'https://ideon.ar',
           desc: 'Plataforma web integral que proporciona soluciones tecnológicas. Se centra en una infraestructura robusta y una experiencia de usuario fluida.',
-          tags: ['Web Development', 'Infrastructure', 'FastAPI']
+          tags: ['Web Development', 'Infrastructure', 'FastAPI'],
+          image: '/IMAGEN-IDEON.png'
+        }
+      ]
+    },
+    services: {
+      title: 'Servicios',
+      desc: 'Soluciones técnicas profesionales para equipos informáticos y redes. Precios promocionales en oferta.',
+      categories: [
+        {
+          name: 'Soporte y Diagnóstico Base',
+          items: [
+            { name: 'Diagnóstico / revisión', original: 16564, current: 10790 },
+            { name: 'Conexión Remota x 1 HS', original: 13251, current: 8590 },
+            { name: 'Visita a domicilio x 1 HS', original: 29816, current: 19390 },
+            { name: 'Visita de Emergencia fuera de HS', original: 57974, current: 37690 },
+            { name: 'Configuración Router / Access Point', original: 36441, current: 23690 }
+          ]
+        },
+        {
+          name: 'Software y Optimización',
+          items: [
+            { name: 'Formateo e instalación SO sin BackUp', original: 57974, current: 37690 },
+            { name: 'Inicialización de equipo nuevo', original: 49691, current: 32290 },
+            { name: 'Reparación de inicio Windows', original: 43762, current: 28490 },
+            { name: 'Limpieza Software y Eliminación Malware', original: 29816, current: 19390 },
+            { name: 'Instalación de Drivers', original: 19877, current: 12990 },
+            { name: 'Instalación Programas Comerciales / OpenSource', original: 16564, current: 10790 }
+          ]
+        },
+        {
+          name: 'Mantenimiento de Hardware',
+          items: [
+            { name: 'Limpieza Física + Formateo + BackUp + Cambio SSD', original: 66169, current: 42990 },
+            { name: 'Armado de PC básica desde 0', original: 82820, current: 53890 },
+            { name: 'Limpieza profunda Hardware + Pasta Térmica', original: 29816, current: 19390 },
+            { name: 'Cambio de Pantalla o Flex (Notebooks)', original: 41411, current: 26990 },
+            { name: 'Cambio de Teclado (Notebooks)', original: 24846, current: 16190 }
+          ]
         }
       ]
     },
@@ -350,6 +432,9 @@ export default function Portfolio() {
             <a href="#projects" className="nav-link">
               <Briefcase size={16} /> {t.nav.projects}
             </a>
+            <a href="#services" className="nav-link">
+              <Database size={16} /> {t.nav.services}
+            </a>
             <a href="#contact" className="nav-link">
               <Mail size={16} /> {t.nav.contact}
             </a>
@@ -436,21 +521,25 @@ export default function Portfolio() {
               </div>
               
               <div className="hero-social">
-                <a href="https://github.com/TheSortty" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="GitHub">
+                <a href="https://github.com/thesortty" target="_blank" rel="noopener noreferrer" className="social-icon">
                   <Github size={24} />
                 </a>
-                <a href="https://www.linkedin.com/in/gonzalo-murguia-5135b23b4/" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="LinkedIn">
+                <a href="https://linkedin.com/in/thesortty" target="_blank" rel="noopener noreferrer" className="social-icon">
                   <Linkedin size={24} />
+                </a>
+                <a href="https://wa.me/5492612407277?text=Hola%20Gonzalo!%20Vengo%20de%20tu%20portfolio%20web%20y%20me%20gustar%C3%ADa%20ponerme%20en%20contacto%20contigo." target="_blank" rel="noopener noreferrer" className="social-icon">
+                  <MessageCircle size={24} />
                 </a>
               </div>
             </div>
 
-            <div className="hero-image-wrapper">
+            <div className="hero-image-wrapper relative">
+              <Leaf className="absolute -top-12 -left-16 w-64 h-64 text-[var(--primary)] opacity-[0.03] -rotate-12 pointer-events-none z-0" />
               <div className="hero-image-container">
                 <div className="profile-image-glow"></div>
                 <div className="profile-image-frame">
-                  <div className="profile-image">
-                    <User className="profile-placeholder" />
+                  <div className="profile-image bg-[var(--bg-dark)]">
+                    <img src="/GM-LOGO.png" alt="GM Logo" className="w-[60%] h-[60%] object-contain drop-shadow-[0_0_15px_rgba(127,175,155,0.4)] hover:scale-105 transition-transform duration-500" />
                   </div>
                 </div>
                 
@@ -571,52 +660,10 @@ export default function Portfolio() {
                 <h3 className="category-title text-xl font-bold mb-6 text-[var(--text-primary)] flex items-center gap-3">
                   <Layout className="text-[var(--primary)]" /> {t.skills.frontend}
                 </h3>
-                <div className="space-y-4">
-                  <div className="skill-item">
-                    <div className="flex justify-between mb-2">
-                      <span>Python (FastAPI)</span>
-                      <span className="text-[var(--primary)]">90%</span>
-                    </div>
-                    <div className="h-2 bg-[var(--bg-dark)] rounded-full overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-[var(--gradient-1)] rounded-full"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: '90%' }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      ></motion.div>
-                    </div>
-                  </div>
-                  <div className="skill-item">
-                    <div className="flex justify-between mb-2">
-                      <span>TypeScript / Node.js</span>
-                      <span className="text-[var(--primary)]">85%</span>
-                    </div>
-                    <div className="h-2 bg-[var(--bg-dark)] rounded-full overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-[var(--gradient-1)] rounded-full"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: '85%' }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      ></motion.div>
-                    </div>
-                  </div>
-                  <div className="skill-item">
-                    <div className="flex justify-between mb-2">
-                      <span>n8n (Automation)</span>
-                      <span className="text-[var(--primary)]">95%</span>
-                    </div>
-                    <div className="h-2 bg-[var(--bg-dark)] rounded-full overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-[var(--gradient-1)] rounded-full"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: '95%' }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      ></motion.div>
-                    </div>
-                  </div>
+                <div className="flex flex-wrap gap-3">
+                  <span className="tag">Python (FastAPI)</span>
+                  <span className="tag">TypeScript / Node.js</span>
+                  <span className="tag">n8n (Automation)</span>
                 </div>
               </div>
 
@@ -624,52 +671,10 @@ export default function Portfolio() {
                 <h3 className="category-title text-xl font-bold mb-6 text-[var(--text-primary)] flex items-center gap-3">
                   <Server className="text-[var(--cyan)]" /> {t.skills.backend}
                 </h3>
-                <div className="space-y-4">
-                  <div className="skill-item">
-                    <div className="flex justify-between mb-2">
-                      <span>Linux / Windows Server</span>
-                      <span className="text-[var(--cyan)]">90%</span>
-                    </div>
-                    <div className="h-2 bg-[var(--bg-dark)] rounded-full overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-[var(--gradient-2)] rounded-full"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: '90%' }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      ></motion.div>
-                    </div>
-                  </div>
-                  <div className="skill-item">
-                    <div className="flex justify-between mb-2">
-                      <span>Docker / Networking</span>
-                      <span className="text-[var(--cyan)]">85%</span>
-                    </div>
-                    <div className="h-2 bg-[var(--bg-dark)] rounded-full overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-[var(--gradient-2)] rounded-full"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: '85%' }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      ></motion.div>
-                    </div>
-                  </div>
-                  <div className="skill-item">
-                    <div className="flex justify-between mb-2">
-                      <span>Pterodactyl</span>
-                      <span className="text-[var(--cyan)]">80%</span>
-                    </div>
-                    <div className="h-2 bg-[var(--bg-dark)] rounded-full overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-[var(--gradient-2)] rounded-full"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: '80%' }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      ></motion.div>
-                    </div>
-                  </div>
+                <div className="flex flex-wrap gap-3">
+                  <span className="tag">Linux / Windows Server</span>
+                  <span className="tag">Docker / Networking</span>
+                  <span className="tag">Pterodactyl</span>
                 </div>
               </div>
 
@@ -677,52 +682,10 @@ export default function Portfolio() {
                 <h3 className="category-title text-xl font-bold mb-6 text-[var(--text-primary)] flex items-center gap-3">
                   <Database className="text-[var(--green)]" /> {t.skills.database}
                 </h3>
-                <div className="space-y-4">
-                  <div className="skill-item">
-                    <div className="flex justify-between mb-2">
-                      <span>VoIP / Asterisk</span>
-                      <span className="text-[var(--green)]">95%</span>
-                    </div>
-                    <div className="h-2 bg-[var(--bg-dark)] rounded-full overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-[var(--gradient-3)] rounded-full"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: '95%' }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      ></motion.div>
-                    </div>
-                  </div>
-                  <div className="skill-item">
-                    <div className="flex justify-between mb-2">
-                      <span>Issabel / PJSIP</span>
-                      <span className="text-[var(--green)]">90%</span>
-                    </div>
-                    <div className="h-2 bg-[var(--bg-dark)] rounded-full overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-[var(--gradient-3)] rounded-full"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: '90%' }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      ></motion.div>
-                    </div>
-                  </div>
-                  <div className="skill-item">
-                    <div className="flex justify-between mb-2">
-                      <span>Git / SQL</span>
-                      <span className="text-[var(--green)]">85%</span>
-                    </div>
-                    <div className="h-2 bg-[var(--bg-dark)] rounded-full overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-[var(--gradient-3)] rounded-full"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: '85%' }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                      ></motion.div>
-                    </div>
-                  </div>
+                <div className="flex flex-wrap gap-3">
+                  <span className="tag">VoIP / Asterisk</span>
+                  <span className="tag">Issabel / PJSIP</span>
+                  <span className="tag">Git / SQL</span>
                 </div>
               </div>
             </div>
@@ -788,7 +751,7 @@ export default function Portfolio() {
                 <div className="timeline-marker"></div>
                 <div className="timeline-content">
                   <div className="timeline-header">
-                    <span className="timeline-year">2018 - 2021</span>
+                    <span className="timeline-year">Jul. 2025 - Sep. 2025</span>
                     <span className="timeline-badge">{t.experience.fulltime}</span>
                   </div>
                   <h3 className="timeline-title">{t.experience.jobs[1].title}</h3>
@@ -836,12 +799,16 @@ export default function Portfolio() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="project-card bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden group hover:-translate-y-2 transition-transform duration-300"
+                  className="project-card bg-[var(--bg-card)] rounded-none border border-[var(--border)] overflow-hidden group hover:-translate-y-2 transition-transform duration-300"
                 >
-                  <div className="project-image h-48 bg-[var(--bg-hover)] relative overflow-hidden">
-                    <div className="project-placeholder">
-                      <Code2 size={48} className="text-[var(--primary)] opacity-50" />
-                    </div>
+                  <div className="project-image w-full relative overflow-hidden border-b border-[var(--border)] bg-transparent">
+                    {project.image ? (
+                      <img src={project.image} alt={project.name} className="w-full h-auto block" />
+                    ) : (
+                      <div className="project-placeholder">
+                        <Code2 size={48} className="text-[var(--primary)] opacity-50" />
+                      </div>
+                    )}
                     <div className="project-overlay">
                       <div className="project-links">
                         <a href={`https://${project.url}`} target="_blank" rel="noopener noreferrer" className="project-link" aria-label="Live Demo"><Globe size={20} /></a>
@@ -865,10 +832,58 @@ export default function Portfolio() {
           </div>
         </section>
 
-        <section className="section fade-in" id="contact">
-          <div className="section-container">
+        <section className="section fade-in relative overflow-hidden" id="services">
+          <div className="section-container relative z-10">
             <div className="section-header">
               <span className="section-number">05.</span>
+              <h2 className="section-title">
+                <span className="title-bracket">&lt;</span>
+                <span className="title-text">{t.services.title}</span>
+                <span className="title-bracket">/&gt;</span>
+              </h2>
+            </div>
+            <p className="text-[var(--text-secondary)] mb-12 max-w-2xl text-lg">{t.services.desc}</p>
+            
+            <div className="grid lg:grid-cols-3 gap-6">
+              {t.services.categories.map((cat: any, idx: number) => (
+                <div key={idx} className="bg-[var(--bg-card)] rounded-none border border-[var(--border)] overflow-hidden hover:border-[var(--primary)] transition-colors duration-300">
+                  <div className="p-8 border-b border-[var(--border)] bg-[var(--bg-dark)]">
+                    <h3 className="text-xl font-bold text-[var(--primary)]">{cat.name}</h3>
+                  </div>
+                  <div className="p-8 flex flex-col gap-6">
+                    {cat.items.map((item: any, i: number) => (
+                      <div key={i} className="flex justify-between md:items-center gap-4 group flex-col md:flex-row border-b border-[var(--border)] pb-3 last:border-0 last:pb-0">
+                        <span className="text-[var(--text-secondary)] text-sm group-hover:text-[var(--text-primary)] transition-colors pr-2 leading-tight flex-1">{item.name}</span>
+                        <div className="text-left md:text-right flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-0 whitespace-nowrap">
+                          <span className="text-xs text-[var(--text-secondary)] line-through opacity-70">
+                            ${(item.original).toLocaleString('es-AR')}
+                          </span>
+                          <span className="text-lg font-bold text-[var(--cyan)]">
+                            ${(item.current).toLocaleString('es-AR')}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-16 text-center relative z-10">
+              <a href="https://wa.me/5492612407277?text=Hola%20Gonzalo!%20Vengo%20de%20tu%20portfolio%20web%20y%20estoy%20muy%20interesado%20en%20tus%20Servicios%20T%C3%A9cnicos.%20%C2%BFPodr%C3%ADas%20darme%20m%C3%A1s%20informaci%C3%B3n%3F" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-xl px-10 py-5 inline-flex items-center gap-3 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-105 hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] transition-all font-bold group">
+                <MessageCircle size={28} className="group-hover:-rotate-12 transition-transform duration-300" />
+                {t.services.title === 'Services' ? 'Request Service via WhatsApp' : 'Solicitar Servicio por WhatsApp'}
+              </a>
+            </div>
+            
+            <Leaf className="absolute -bottom-20 -right-20 w-[600px] h-[600px] text-[var(--primary)] opacity-[0.02] rotate-45 pointer-events-none z-0" />
+          </div>
+        </section>
+
+        <section className="section fade-in" id="contact">
+          <div className="section-container max-w-2xl text-center mx-auto">
+            <div className="section-header justify-center mb-12">
+              <span className="section-number">06.</span>
               <h2 className="section-title">
                 <span className="title-bracket">&lt;</span>
                 <span className="title-text">{t.contact.title}</span>
