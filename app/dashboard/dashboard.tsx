@@ -498,7 +498,15 @@ export default function Dashboard() {
   const load = useCallback(async () => {
     setRefreshing(true);
     try {
-      const res = await fetch('/api/dashboard', { cache: 'no-store' });
+      const res = await fetch('/api/dashboard', { cache: 'no-store', redirect: 'manual' });
+      // Cuando vence la sesión, Access responde con una redirección a su login.
+      if (res.type === 'opaqueredirect') {
+        const error = 'Tu sesión de Cloudflare Access venció. Recargá la página para volver a entrar.';
+        setState((prev) =>
+          prev.kind === 'ready' ? { ...prev, error } : { kind: 'failed', error, offline: false, status: 401 },
+        );
+        return;
+      }
       const body = await res.json().catch(() => ({ error: 'Respuesta inválida del servidor.' }));
       if (res.ok) {
         setState({ kind: 'ready', data: body as Overview, fetchedAt: Date.now() });
@@ -580,15 +588,21 @@ export default function Dashboard() {
 
         {state.kind === 'failed' && (
           <div className="flex flex-col items-start gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-8!">
-            {state.status === 403 ? <Lock className="h-7 w-7 text-[var(--accent)]" aria-hidden /> : <CloudOff className="h-7 w-7 text-[#F87171]" aria-hidden />}
-            <h2 className="text-xl font-bold">{state.offline ? 'El servidor no responde' : state.status === 403 ? 'Sin acceso' : 'No se pudo cargar el estado'}</h2>
+            {state.status === 403 || state.status === 401 ? <Lock className="h-7 w-7 text-[var(--accent)]" aria-hidden /> : <CloudOff className="h-7 w-7 text-[#F87171]" aria-hidden />}
+            <h2 className="text-xl font-bold">
+              {state.offline ? 'El servidor no responde' : state.status === 401 ? 'Sesión vencida' : state.status === 403 ? 'Sin acceso' : 'No se pudo cargar el estado'}
+            </h2>
             <p className="max-w-prose text-[var(--text-secondary)]">
               {state.offline
                 ? 'La PC puede estar apagada o sin internet. Si se cortó la luz, va a volver sola cuando se prenda.'
                 : state.error}
             </p>
-            <button type="button" onClick={load} className="mt-2! rounded-lg border border-[var(--border)] px-4! py-2! text-sm hover:border-[var(--primary)]">
-              Reintentar
+            <button
+              type="button"
+              onClick={state.status === 401 ? () => window.location.reload() : load}
+              className="mt-2! rounded-lg border border-[var(--border)] px-4! py-2! text-sm hover:border-[var(--primary)]"
+            >
+              {state.status === 401 ? 'Volver a entrar' : 'Reintentar'}
             </button>
           </div>
         )}
