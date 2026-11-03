@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Activity,
   Archive,
   ArrowDown,
   ArrowUp,
@@ -10,21 +9,18 @@ import {
   ChevronDown,
   ChevronUp,
   CircleAlert,
-  CircleCheck,
-  Cloud,
   CloudOff,
-  Cpu,
   ExternalLink,
   Gamepad2,
   HardDrive,
+  House,
   LoaderCircle,
   Lock,
-  MemoryStick,
   RefreshCw,
   Server,
   ShieldAlert,
   ShieldCheck,
-  Thermometer,
+  Activity,
 } from 'lucide-react';
 import {
   isError,
@@ -49,65 +45,62 @@ import {
   toneFor,
   type Tone,
 } from './format';
+import { CloudVault, GrassBlock, PcTower, Router } from './art';
 import './dashboard.css';
 
 const REFRESH_MS = 30_000;
-
-const LINKS = [
-  { label: 'Panel', href: 'https://panel.thesortty.dev' },
-  { label: 'Kuma', href: 'https://kuma.thesortty.dev' },
-];
-
-// ---------- piezas visuales ----------
+const TZ = 'America/Argentina/Buenos_Aires';
+const OWNER = 'Gonzalo';
 
 const t = (tone: Tone) => `t-${tone}`;
+const num = (n: number | null | undefined, digits = 1) =>
+  n == null ? '—' : n.toLocaleString('es-AR', { maximumFractionDigits: digits });
+
+// ---------- piezas ----------
 
 function Chip({ tone, children }: { tone: Tone; children: React.ReactNode }) {
   return <span className={`d-chip ${t(tone)}`}>{children}</span>;
 }
 
-function Card({ title, icon: Icon, action, children, className = '' }: {
+function Tile({ id, area, title, sub, action, dim, children }: {
+  id?: string;
+  area: string;
   title: string;
-  icon: React.ElementType;
+  sub?: React.ReactNode;
   action?: React.ReactNode;
+  dim?: boolean;
   children: React.ReactNode;
-  className?: string;
 }) {
   return (
-    <section className={`d-card ${className}`}>
-      <header className="d-card-head">
-        <h2>
-          <Icon aria-hidden />
-          {title}
-        </h2>
+    <section id={id} className={`d-tile d-glass ${area} ${dim ? 'd-tile-dim' : ''}`} aria-label={title}>
+      <header className="d-tile-head">
+        <div style={{ minWidth: 0 }}>
+          <h2 className="d-tile-title">{title}</h2>
+          {sub && <p className="d-tile-sub">{sub}</p>}
+        </div>
         {action}
       </header>
-      <div className="d-card-body">{children}</div>
+      {children}
     </section>
   );
 }
 
-function Bar({ value, tone }: { value: number | null; tone: Tone }) {
+function Bar({ value, tone, accent }: { value: number | null; tone: Tone; accent?: boolean }) {
   return (
-    <div className={`d-bar ${t(tone)}`} role="presentation">
+    <div className={`d-bar ${t(tone)} ${accent ? 'd-is-accent' : ''}`} role="presentation">
       <span style={{ width: `${Math.min(100, Math.max(0, value ?? 0))}%` }} />
     </div>
   );
 }
 
-function Sparkline({ points, field, max, tone, unit }: {
-  points: HistoryPoint[];
-  field: 'cpu' | 'temp' | 'mem';
-  max: number;
-  tone: Tone;
-  unit: string;
-}) {
+function Sparkline({ points, field, tone, unit }: { points: HistoryPoint[]; field: 'cpu' | 'temp' | 'mem'; tone: Tone; unit: string }) {
   const values = points.map((p) => p[field]).filter((v): v is number => v != null);
   if (values.length < 2) return null;
-  const w = 120;
-  const h = 36;
+  const w = 160;
+  const h = 44;
+  const max = Math.max(100, ...values);
   const step = w / (values.length - 1);
-  const y = (v: number) => h - 3 - (Math.min(v, max) / max) * (h - 6);
+  const y = (v: number) => h - 3 - (v / max) * (h - 6);
   const line = values.map((v, i) => `${i === 0 ? 'M' : 'L'}${(i * step).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
   const peak = Math.max(...values);
   const label = `Última hora: mínimo ${Math.round(Math.min(...values))}${unit}, máximo ${Math.round(peak)}${unit}`;
@@ -115,8 +108,7 @@ function Sparkline({ points, field, max, tone, unit }: {
     <div>
       <svg viewBox={`0 0 ${w} ${h}`} className={`d-spark ${t(tone)}`} preserveAspectRatio="none" role="img" aria-label={label}>
         <title>{label}</title>
-        <line x1="0" x2={w} y1={h / 2} y2={h / 2} stroke="currentColor" opacity="0.12" vectorEffect="non-scaling-stroke" />
-        <path d={`${line} L${w},${h} L0,${h} Z`} fill="currentColor" opacity="0.1" />
+        <path d={`${line} L${w},${h} L0,${h} Z`} fill="currentColor" opacity="0.12" />
         <path d={line} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
       </svg>
       <div className="d-spark-cap">
@@ -135,145 +127,169 @@ function SectionError({ message }: { message: string }) {
   );
 }
 
-// ---------- equipos ----------
-
-function Metric({ icon: Icon, label, value, unit, detail, tone, bar, spark }: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  unit?: string;
-  detail?: string;
-  tone: Tone;
-  bar?: number | null;
-  spark?: React.ReactNode;
-}) {
-  return (
-    <div className="d-metric">
-      <span className="d-label">
-        <Icon aria-hidden /> {label}
-      </span>
-      <div className="d-value-row">
-        <span className="d-value num">
-          {value}
-          {unit && value !== '—' && <small>{unit}</small>}
-        </span>
-        {(tone === 'warn' || tone === 'crit') && <span className={`d-flag ${t(tone)}`}>{tone === 'crit' ? 'Alto' : 'Elevado'}</span>}
-      </div>
-      {detail && <span className="d-detail">{detail}</span>}
-      {bar !== undefined && <Bar value={bar} tone={tone} />}
-      {spark}
-    </div>
-  );
+function nodeHealth(node: ServerNode, now: number): { tone: Tone; label: string } {
+  const stale = !node.updatedAt || now - new Date(node.updatedAt).getTime() > LIMITS.nodeStaleMinutes * 60_000;
+  if (node.status === 'paused') return { tone: 'muted', label: 'En pausa' };
+  if (node.status !== 'up') return { tone: 'crit', label: 'Desconectada' };
+  if (stale) return { tone: 'crit', label: 'Sin datos recientes' };
+  return { tone: 'ok', label: 'En línea' };
 }
 
-const num = (n: number | null | undefined, digits = 1) =>
-  n == null ? '—' : n.toLocaleString('es-AR', { maximumFractionDigits: digits });
+// ---------- equipo ----------
 
-function NodeCard({ node, now }: { node: ServerNode; now: number }) {
-  const [showContainers, setShowContainers] = useState(false);
-  const stale = !node.updatedAt || now - new Date(node.updatedAt).getTime() > LIMITS.nodeStaleMinutes * 60_000;
-  const statusTone: Tone = node.status === 'up' && !stale ? 'ok' : node.status === 'paused' ? 'muted' : 'crit';
-  const statusLabel = node.status === 'up' ? (stale ? 'Sin datos recientes' : 'En línea') : node.status === 'paused' ? 'En pausa' : 'Desconectada';
-  const tempTone = toneFor(node.cpuTemp, LIMITS.tempWarn, LIMITS.tempCrit);
+function NodeTile({ node, now }: { node: ServerNode; now: number }) {
+  const [open, setOpen] = useState(false);
+  const health = nodeHealth(node, now);
   const cpuTone = toneFor(node.cpuPct, LIMITS.cpuWarn, LIMITS.cpuCrit);
   const memTone = toneFor(node.memPct, LIMITS.memWarn, LIMITS.memCrit);
   const unhealthy = node.containers.filter((c) => c.health === 'unhealthy').length;
 
   return (
-    <article className="d-node">
-      <div className="d-node-head">
-        <div className="d-node-name">
-          <h3 className="mono">{node.name}</h3>
-          <Chip tone={statusTone}>{statusLabel}</Chip>
-        </div>
-        <span className="d-meta">
-          Encendida hace {formatDuration(node.uptimeSec)} · datos {formatRelative(node.updatedAt, now)}
-        </span>
-      </div>
-
-      <div className={statusTone === 'ok' ? '' : 'd-dim'} title={statusTone === 'ok' ? undefined : 'Últimos datos recibidos'}>
-        <div className="d-metrics">
-          <Metric
-            icon={Thermometer}
-            label="Temperatura"
-            value={node.cpuTemp == null ? '—' : String(Math.round(node.cpuTemp))}
-            unit="°C"
-            detail={`Alerta desde ${LIMITS.tempWarn} °C`}
-            tone={tempTone}
-            spark={<Sparkline points={node.history} field="temp" max={100} tone={tempTone} unit=" °C" />}
-          />
-          <Metric
-            icon={Cpu}
-            label="Procesador"
-            value={num(node.cpuPct)}
-            unit="%"
-            detail={node.load ? `Carga ${node.load.map((l) => num(l, 2)).join(' · ')}` : undefined}
-            tone={cpuTone}
-            spark={<Sparkline points={node.history} field="cpu" max={100} tone={cpuTone} unit=" %" />}
-          />
-          <Metric
-            icon={MemoryStick}
-            label="Memoria"
-            value={num(node.memPct)}
-            unit="%"
-            detail={`${num(node.memUsedGB)} de ${num(node.memTotalGB)} GB`}
-            tone={memTone}
-            bar={node.memPct}
-          />
-        </div>
-
-        <div className="d-disks">
-          {node.disks.map((d) => {
-            const tone = toneFor(d.pct, LIMITS.diskWarn, LIMITS.diskCrit);
-            return (
-              <div key={d.key} className="d-disk">
-                <div className="d-disk-row">
-                  <span className="d-label">
-                    <HardDrive aria-hidden /> {d.label}
-                  </span>
-                  <span className={`num ${t(tone)}`}>
-                    {formatGB(d.usedGB)} de {formatGB(d.totalGB)} · {pct(d.pct)}
-                  </span>
-                </div>
-                <Bar value={d.pct} tone={tone} />
-              </div>
-            );
-          })}
+    <Tile
+      id="equipo"
+      area="a-node"
+      title={node.name}
+      sub={`Encendida hace ${formatDuration(node.uptimeSec)}, datos ${formatRelative(node.updatedAt, now)}`}
+      action={<Chip tone={health.tone}>{health.label}</Chip>}
+    >
+      <div className={`d-node-body ${health.tone === 'ok' ? '' : 'd-tile-dim'}`}>
+        <PcTower className={`d-node-art ${t(health.tone)}`} />
+        <div className="d-node-stats">
+          <div style={{ gridColumn: '1 / -1' }}>
+            <p className="d-stat-label">Procesador</p>
+            <p className="d-stat-value num">
+              {num(node.cpuPct)}<small>%</small>
+              {(cpuTone === 'warn' || cpuTone === 'crit') && <span className={`d-stat-flag ${t(cpuTone)}`}>{cpuTone === 'crit' ? 'Al límite' : 'Exigido'}</span>}
+            </p>
+            <Sparkline points={node.history} field="cpu" tone={cpuTone} unit=" %" />
+          </div>
+          <div>
+            <p className="d-stat-label">Memoria</p>
+            <p className="d-stat-value num">{num(node.memPct)}<small>%</small></p>
+            <p className="d-stat-detail num">{num(node.memUsedGB)} de {num(node.memTotalGB)} GB</p>
+            <div style={{ marginTop: 6 }}><Bar value={node.memPct} tone={memTone} /></div>
+          </div>
+          <div>
+            <p className="d-stat-label">Carga promedio</p>
+            <p className="d-stat-value num">{node.load ? num(node.load[0], 2) : '—'}</p>
+            <p className="d-stat-detail num">{node.load ? `5 min ${num(node.load[1], 2)}, 15 min ${num(node.load[2], 2)}` : 'Sin datos'}</p>
+          </div>
         </div>
       </div>
 
       <div className="d-node-foot">
-        <span className="d-net num">
-          <span><ArrowUp aria-label="Subida" />{formatRate(node.net?.upBps)}</span>
-          <span><ArrowDown aria-label="Bajada" />{formatRate(node.net?.downBps)}</span>
-        </span>
-        <button type="button" className="d-link-btn" onClick={() => setShowContainers((v) => !v)} aria-expanded={showContainers}>
+        <span className="d-tile-sub">{node.threads ? `${node.threads} hilos de CPU` : ''}</span>
+        <button type="button" className="d-text-btn" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
           <Box aria-hidden />
-          {node.containers.length} contenedores
-          {unhealthy > 0 && <span className="t-crit"> · {unhealthy} con problemas</span>}
-          {showContainers ? <ChevronUp aria-hidden /> : <ChevronDown aria-hidden />}
+          <span>
+            {node.containers.length} contenedores
+            {unhealthy > 0 && <span style={{ color: 'var(--d-crit)' }}>, {unhealthy} con problemas</span>}
+          </span>
+          {open ? <ChevronUp aria-hidden /> : <ChevronDown aria-hidden />}
         </button>
       </div>
 
-      {showContainers && (
-        <div className="d-containers">
-          <ul className="d-list">
-            {node.containers.map((c) => (
-              <li key={c.name}>
-                <span className="d-cname">
-                  <span className={`d-dot ${t(c.health === 'unhealthy' ? 'crit' : c.status.startsWith('Up') ? 'ok' : 'muted')}`} aria-hidden />
-                  <span className="mono">{c.name}</span>
-                </span>
-                <span className="d-right num">
-                  <span>{c.memMB ?? '—'} MB</span>
-                  <span>CPU {pct(c.cpuPct)}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {open && (
+        <ul className="d-containers">
+          {node.containers.map((c) => (
+            <li key={c.name}>
+              <span className="c-name">
+                <span className={`d-dot ${t(c.health === 'unhealthy' ? 'crit' : c.status.startsWith('Up') ? 'ok' : 'muted')}`} aria-hidden />
+                {c.name}
+              </span>
+              <span className="c-use num">{c.memMB ?? '—'} MB, CPU {pct(c.cpuPct)}</span>
+            </li>
+          ))}
+        </ul>
       )}
-    </article>
+    </Tile>
+  );
+}
+
+// Medidor de 240°, de 0 a 100 °C, como el dial de un aire acondicionado.
+const GAUGE = { cx: 100, cy: 100, r: 80, start: 150, sweep: 240 };
+const polar = (deg: number, r = GAUGE.r) => {
+  const a = (deg * Math.PI) / 180;
+  return [GAUGE.cx + r * Math.cos(a), GAUGE.cy + r * Math.sin(a)] as const;
+};
+
+function TempTile({ node }: { node: ServerNode }) {
+  const temp = node.cpuTemp;
+  const tone = toneFor(temp, LIMITS.tempWarn, LIMITS.tempCrit);
+  const frac = Math.min(1, Math.max(0, (temp ?? 0) / 100));
+  const [sx, sy] = polar(GAUGE.start);
+  const [ex, ey] = polar(GAUGE.start + GAUGE.sweep);
+  const arc = `M${sx.toFixed(1)} ${sy.toFixed(1)} A${GAUGE.r} ${GAUGE.r} 0 1 1 ${ex.toFixed(1)} ${ey.toFixed(1)}`;
+  const length = (2 * Math.PI * GAUGE.r * GAUGE.sweep) / 360;
+  const [kx, ky] = polar(GAUGE.start + GAUGE.sweep * frac);
+  const [wx1, wy1] = polar(GAUGE.start + GAUGE.sweep * (LIMITS.tempWarn / 100), GAUGE.r - 14);
+  const [wx2, wy2] = polar(GAUGE.start + GAUGE.sweep * (LIMITS.tempWarn / 100), GAUGE.r - 22);
+  const temps = node.history.map((p) => p.temp).filter((v): v is number => v != null);
+
+  return (
+    <Tile area="a-temp" title="Temperatura" sub="Procesador">
+      <div className={`d-gauge ${t(tone)}`}>
+        <svg viewBox="0 0 200 172" role="img" aria-label={temp == null ? 'Sin datos de temperatura' : `${Math.round(temp)} grados`}>
+          {Array.from({ length: 41 }, (_, i) => {
+            const deg = GAUGE.start + (GAUGE.sweep * i) / 40;
+            const [x1, y1] = polar(deg, GAUGE.r - 14);
+            const [x2, y2] = polar(deg, GAUGE.r - (i % 5 === 0 ? 22 : 18));
+            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--d-text-3)" strokeOpacity={i % 5 === 0 ? 0.7 : 0.35} strokeWidth="1.2" />;
+          })}
+          <line x1={wx1} y1={wy1} x2={wx2} y2={wy2} stroke="var(--d-warn)" strokeWidth="2.5" strokeLinecap="round" />
+          <path d={arc} fill="none" stroke="var(--d-track)" strokeWidth="12" strokeLinecap="round" />
+          {temp != null && (
+            <>
+              <path d={arc} fill="none" className="d-gauge-arc" strokeWidth="12" strokeLinecap="round" strokeDasharray={length} strokeDashoffset={length * (1 - frac)} />
+              <circle cx={kx} cy={ky} r="9" className="d-gauge-knob" />
+            </>
+          )}
+        </svg>
+        <div className="d-gauge-read">
+          <span className="d-gauge-value num">{temp == null ? '—' : `${Math.round(temp)}°`}</span>
+          <span className="d-gauge-unit">{tone === 'crit' ? 'Muy caliente' : tone === 'warn' ? 'Caliente' : 'grados Celsius'}</span>
+        </div>
+      </div>
+      <div className="d-mini-row num">
+        <div><b>{temps.length ? `${Math.round(Math.min(...temps))}°` : '—'}</b><span>mínima</span></div>
+        <div><b>{temps.length ? `${Math.round(Math.max(...temps))}°` : '—'}</b><span>máxima</span></div>
+        <div><b>{LIMITS.tempWarn}°</b><span>alerta</span></div>
+      </div>
+    </Tile>
+  );
+}
+
+function NetTile({ node }: { node: ServerNode }) {
+  return (
+    <Tile area="a-net" title="Red" sub={`Tráfico de ${node.name}`}>
+      <Router className="d-net-art t-ok" />
+      <div className="d-net-rows num">
+        <div><span className="d-tile-sub"><ArrowUp aria-hidden />Subida</span><b>{formatRate(node.net?.upBps)}</b></div>
+        <div><span className="d-tile-sub"><ArrowDown aria-hidden />Bajada</span><b>{formatRate(node.net?.downBps)}</b></div>
+      </div>
+    </Tile>
+  );
+}
+
+function DisksTile({ node }: { node: ServerNode }) {
+  const used = node.disks.reduce((a, d) => a + (d.usedGB ?? 0), 0);
+  const total = node.disks.reduce((a, d) => a + (d.totalGB ?? 0), 0);
+  return (
+    <Tile area="a-disk" title="Almacenamiento" sub={`${formatGB(used)} usados de ${formatGB(total)}`}>
+      <div className="d-disks">
+        {node.disks.map((d) => {
+          const tone = toneFor(d.pct, LIMITS.diskWarn, LIMITS.diskCrit);
+          return (
+            <div key={d.key} className="d-disk">
+              <span className="d-disk-name"><HardDrive aria-hidden /> {d.label}</span>
+              <span className={`d-stat-value num ${t(tone)}`}>{num(d.pct, 0)}<small>%</small></span>
+              <Bar value={d.pct} tone={tone} />
+              <span className="d-disk-use num">{formatGB(d.usedGB)} de {formatGB(d.totalGB)}</span>
+            </div>
+          );
+        })}
+      </div>
+    </Tile>
   );
 }
 
@@ -289,46 +305,66 @@ const GAME_STATE: Record<GameServer['state'], { label: string; tone: Tone }> = {
   unknown: { label: 'Sin datos', tone: 'muted' },
 };
 
-function GameServersCard({ data }: { data: GameServers | { error: string } }) {
+function GamesTile({ data }: { data: GameServers | { error: string } }) {
+  const servers = !isError(data) && data.configured ? data.servers : [];
+  const running = servers.filter((s) => s.state === 'running').length;
   return (
-    <Card title="Servidores de juego" icon={Gamepad2}>
+    <Tile
+      id="juegos"
+      area="a-game"
+      title="Servidores de juego"
+      sub={servers.length ? `${running} encendidos de ${servers.length}` : 'Desde Pterodactyl'}
+    >
       {isError(data) ? (
         <SectionError message={data.error} />
       ) : !data.configured ? (
-        <p className="d-empty">Falta conectar Pterodactyl: creá un usuario para el dashboard y cargá su clave de API en el servidor.</p>
-      ) : data.servers.length === 0 ? (
-        <p className="d-empty">El usuario del dashboard no tiene servidores asignados.</p>
+        <div className="d-games-empty">
+          <GrassBlock className="d-game-art" />
+          <p className="d-empty">
+            Para verlos acá, creá en Pterodactyl un usuario para el dashboard, sumalo a cada servidor y cargá su clave de API en el servidor.
+          </p>
+        </div>
+      ) : servers.length === 0 ? (
+        <div className="d-games-empty">
+          <GrassBlock className="d-game-art" />
+          <p className="d-empty">El usuario del dashboard todavía no tiene servidores asignados.</p>
+        </div>
       ) : (
-        <ul className="d-list">
-          {data.servers.map((s) => {
+        <div className="d-games">
+          {servers.map((s) => {
             const st = GAME_STATE[s.state] ?? GAME_STATE.unknown;
+            const memPct = s.memBytes && s.limits.memMB ? (s.memBytes / (s.limits.memMB * 1024 * 1024)) * 100 : null;
             return (
-              <li key={s.id}>
-                <div style={{ minWidth: 0 }}>
-                  <p className="d-name">{s.name}</p>
-                  <p className="d-meta mono">
-                    {s.node}{s.port ? ` · puerto ${s.port}` : ''}
-                    {s.state === 'running' && ` · ${formatDuration((s.uptimeMs ?? 0) / 1000)}`}
-                  </p>
-                </div>
-                <div className="d-right num">
-                  {s.state === 'running' && (
-                    <span>
-                      {formatBytes(s.memBytes)}{s.limits.memMB ? ` / ${formatBytes(s.limits.memMB * 1024 * 1024)}` : ''} · CPU {pct(s.cpuPct)}
-                    </span>
-                  )}
+              <article key={s.id} className={`d-game ${s.state === 'running' ? '' : 'd-is-off'}`}>
+                <div className="d-game-top">
+                  <GrassBlock className="d-game-art" />
                   <Chip tone={st.tone}>{st.label}</Chip>
                 </div>
-              </li>
+                <div>
+                  <p className="d-game-name">{s.name}</p>
+                  <p className="d-game-meta num">
+                    {s.port ? `Puerto ${s.port}` : s.node}
+                    {s.state === 'running' && `, hace ${formatDuration((s.uptimeMs ?? 0) / 1000)}`}
+                  </p>
+                </div>
+                {s.state === 'running' && (
+                  <div>
+                    <p className="d-game-meta num">
+                      {formatBytes(s.memBytes)}{s.limits.memMB ? ` de ${formatBytes(s.limits.memMB * 1024 * 1024)}` : ''}, CPU {pct(s.cpuPct)}
+                    </p>
+                    {memPct != null && <div style={{ marginTop: 6 }}><Bar value={memPct} tone="ok" accent /></div>}
+                  </div>
+                )}
+              </article>
             );
           })}
-        </ul>
+        </div>
       )}
-    </Card>
+    </Tile>
   );
 }
 
-// ---------- servicios y certificado ----------
+// ---------- servicios ----------
 
 const SERVICE_STATE: Record<Service['status'], { label: string; tone: Tone }> = {
   up: { label: 'Funcionando', tone: 'ok' },
@@ -344,61 +380,54 @@ function certTone(days: number | null | undefined): Tone {
   return days <= LIMITS.certCritDays ? 'crit' : days <= LIMITS.certWarnDays ? 'warn' : 'ok';
 }
 
-function ServicesCard({ services, cert, now }: { services: Service[] | { error: string }; cert: OriginCert | { error: string }; now: number }) {
+function ServicesTile({ services, cert, now }: { services: Service[] | { error: string }; cert: OriginCert | { error: string }; now: number }) {
   return (
-    <Card title="Servicios" icon={Activity} className="d-span">
+    <Tile id="servicios" area="a-svc" title="Servicios" sub="Revisados por Uptime Kuma">
       {isError(services) ? (
         <SectionError message={services.error} />
-      ) : services.length === 0 ? (
-        <p className="d-empty">No hay monitores en Uptime Kuma.</p>
       ) : (
-        <ul className="d-list">
+        <ul className="d-svc-list">
+          {services.length === 0 && <li className="d-empty">No hay monitores en Uptime Kuma.</li>}
           {services.map((s) => {
             const st = SERVICE_STATE[s.status] ?? SERVICE_STATE.unknown;
             return (
               <li key={s.id}>
                 <div style={{ minWidth: 0 }}>
-                  <p className="d-name">{s.name}</p>
-                  <p className="d-meta" title={s.message ?? undefined}>
+                  <p className="d-svc-name">{s.name}</p>
+                  <p className="d-svc-meta num">
                     {s.status === 'down' && s.message
                       ? s.message
                       : s.status === 'paused'
                         ? 'En pausa en Uptime Kuma'
-                        : `Revisado ${formatRelative(s.checkedAt, now)}`}
+                        : [s.uptime24h != null && `${pct(s.uptime24h)} en 24 h`, s.pingMs != null && `${s.pingMs} ms`].filter(Boolean).join(', ') ||
+                          `Revisado ${formatRelative(s.checkedAt, now)}`}
                   </p>
                 </div>
-                <div className="d-right num">
-                  {s.uptime24h != null && <span title="Disponibilidad en las últimas 24 horas">{pct(s.uptime24h)} en 24 h</span>}
-                  {s.pingMs != null && s.status === 'up' && <span>{s.pingMs} ms</span>}
-                  <Chip tone={st.tone}>{st.label}</Chip>
-                </div>
+                <Chip tone={st.tone}>{st.label}</Chip>
               </li>
             );
           })}
+          {isError(cert) ? (
+            <li><SectionError message={cert.error} /></li>
+          ) : !cert.configured ? null : 'error' in cert ? (
+            <li><SectionError message={`Certificado: ${cert.error}`} /></li>
+          ) : (
+            <li className={`d-svc-cert ${t(certTone(cert.daysRemaining))}`}>
+              <div style={{ minWidth: 0 }}>
+                <p className="d-svc-name">
+                  {certTone(cert.daysRemaining) === 'ok' ? <ShieldCheck aria-hidden /> : <ShieldAlert aria-hidden />}
+                  Certificado
+                </p>
+                <p className="d-svc-meta">{cert.issuer ?? 'Emisor desconocido'}, vence el {formatDateTime(cert.validTo)}</p>
+              </div>
+              <Chip tone={certTone(cert.daysRemaining)}>
+                {cert.daysRemaining == null ? 'Sin datos' : cert.daysRemaining < 0 ? 'Vencido' : `${cert.daysRemaining} días`}
+              </Chip>
+            </li>
+          )}
         </ul>
       )}
-
-      {isError(cert) ? (
-        <div className="d-cert"><SectionError message={cert.error} /></div>
-      ) : !cert.configured ? null : 'error' in cert ? (
-        <div className="d-cert"><SectionError message={`Certificado del panel: ${cert.error}`} /></div>
-      ) : (
-        <div className="d-cert">
-          <div className={`d-cert-info ${t(certTone(cert.daysRemaining))}`}>
-            {certTone(cert.daysRemaining) === 'ok' ? <ShieldCheck aria-hidden /> : <ShieldAlert aria-hidden />}
-            <div>
-              <p className="d-name">Certificado del servidor</p>
-              <p className="d-meta">
-                {cert.issuer ?? 'Emisor desconocido'} · vence {formatDateTime(cert.validTo)}
-              </p>
-            </div>
-          </div>
-          <Chip tone={certTone(cert.daysRemaining)}>
-            {cert.daysRemaining == null ? 'Sin datos' : cert.daysRemaining < 0 ? 'Vencido' : `${cert.daysRemaining} días`}
-          </Chip>
-        </div>
-      )}
-    </Card>
+    </Tile>
   );
 }
 
@@ -412,70 +441,122 @@ function backupState(b: Backups, now: number): { label: string; tone: Tone } {
   return { label: 'Al día', tone: 'ok' };
 }
 
-function BackupsCard({ data, now }: { data: Backups | { error: string }; now: number }) {
+// Como un reproductor: la barra avanza del último backup al próximo.
+function BackupsTile({ data, now }: { data: Backups | { error: string }; now: number }) {
   if (isError(data)) {
     return (
-      <Card title="Backups" icon={Archive}>
+      <Tile id="backups" area="a-back" title="Backups">
         <SectionError message={data.error} />
-      </Card>
+      </Tile>
     );
   }
   const st = backupState(data, now);
+  const last = data.lastSuccessAt ? new Date(data.lastSuccessAt).getTime() : null;
+  const next = new Date(data.nextRunAt).getTime();
+  const progress = last && next > last ? ((now - last) / (next - last)) * 100 : null;
   const lastWeekly = data.weekly[0];
   return (
-    <Card title="Backups" icon={Archive} action={<Chip tone={st.tone}>{st.label}</Chip>}>
-      {data.status === 'down' && data.lastMessage && <div style={{ marginBottom: 16 }}><SectionError message={data.lastMessage} /></div>}
-      <dl className="d-facts">
-        {[
-          ['Último', formatRelative(data.lastSuccessAt, now), formatDateTime(data.lastSuccessAt)],
-          ['Próximo', formatRelative(data.nextRunAt, now), formatDateTime(data.nextRunAt)],
-          ['Servidores de juego', lastWeekly ? formatBytes(lastWeekly.bytes) : '—', lastWeekly ? `copia del ${formatDateTime(lastWeekly.modifiedAt)}` : 'Se copian los domingos'],
-          ['Espacio usado', formatBytes(data.totalBytes), `${data.daily.length} diarios · ${data.weekly.length} semanales`],
-        ].map(([label, value, detail]) => (
-          <div key={label} style={{ minWidth: 0 }}>
-            <dt>{label}</dt>
-            <dd className="d-fact-value num">{value}</dd>
-            <dd className="d-fact-detail">{detail}</dd>
-          </div>
-        ))}
+    <Tile id="backups" area="a-back" title="Backups" action={<Chip tone={st.tone}>{st.label}</Chip>}>
+      <div className={`d-back-cover ${t(st.tone === 'muted' ? 'ok' : st.tone)}`}>
+        <CloudVault className={`d-back-art ${t(data.driveOk ? (st.tone === 'muted' ? 'ok' : st.tone) : 'warn')}`} />
+      </div>
+      <div>
+        <p className="d-back-title">Copia diaria</p>
+        <p className="d-tile-sub">{data.driveOk ? 'Cifrada y guardada en Google Drive' : 'El último backup no subió a Google Drive'}</p>
+        {data.status === 'down' && data.lastMessage && <p className="d-back-error" style={{ marginTop: 6 }}>{data.lastMessage}</p>}
+      </div>
+      <div className="d-back-progress">
+        <Bar value={progress} tone="ok" accent />
+        <div className="d-back-times num">
+          <span>{formatRelative(data.lastSuccessAt, now)}</span>
+          <span>próximo {formatRelative(data.nextRunAt, now)}</span>
+        </div>
+      </div>
+      <dl className="d-back-facts num">
+        <div><dt>Último</dt><dd>{formatDateTime(data.lastSuccessAt)}</dd></div>
+        <div><dt>Próximo</dt><dd>{formatDateTime(data.nextRunAt)}</dd></div>
+        <div><dt>Mundos (semanal)</dt><dd>{lastWeekly ? formatBytes(lastWeekly.bytes) : 'Los domingos'}</dd></div>
+        <div><dt>Espacio usado</dt><dd>{formatBytes(data.totalBytes)}</dd></div>
       </dl>
-      <p className={`d-note ${t(data.driveOk ? 'ok' : 'warn')}`}>
-        {data.driveOk ? <Cloud aria-hidden /> : <CloudOff aria-hidden />}
-        {data.driveOk ? 'Copia cifrada en Google Drive al día' : 'El último backup no subió a Google Drive'}
-      </p>
-    </Card>
+    </Tile>
   );
 }
 
-// ---------- resumen de problemas ----------
+// ---------- saludo y resumen ----------
 
-function findProblems(data: Overview, now: number): string[] {
-  const problems: string[] = [];
+function findProblems(data: Overview, now: number): { text: string; tone: Tone }[] {
+  const problems: { text: string; tone: Tone }[] = [];
   for (const value of Object.values(data)) {
-    if (isError(value)) problems.push(value.error);
+    if (isError(value)) problems.push({ text: value.error, tone: 'crit' });
   }
   if (!isError(data.nodes)) {
     for (const n of data.nodes) {
-      const stale = !n.updatedAt || now - new Date(n.updatedAt).getTime() > LIMITS.nodeStaleMinutes * 60_000;
-      if (n.status === 'down' || (n.status === 'up' && stale)) problems.push(`${n.name}: sin conexión con el monitor`);
-      if ((n.cpuTemp ?? 0) >= LIMITS.tempWarn) problems.push(`${n.name}: temperatura alta (${Math.round(n.cpuTemp!)} °C)`);
-      for (const d of n.disks) if ((d.pct ?? 0) >= LIMITS.diskWarn) problems.push(`${n.name}: disco ${d.label} al ${Math.round(d.pct!)} %`);
-      for (const c of n.containers) if (c.health === 'unhealthy') problems.push(`${n.name}: el contenedor ${c.name} tiene problemas`);
+      if (nodeHealth(n, now).tone === 'crit') problems.push({ text: `${n.name} no responde al monitor`, tone: 'crit' });
+      if ((n.cpuTemp ?? 0) >= LIMITS.tempWarn) problems.push({ text: `${n.name} está a ${Math.round(n.cpuTemp!)} °C`, tone: toneFor(n.cpuTemp, LIMITS.tempWarn, LIMITS.tempCrit) });
+      for (const d of n.disks) if ((d.pct ?? 0) >= LIMITS.diskWarn) problems.push({ text: `El disco ${d.label} de ${n.name} está al ${Math.round(d.pct!)} %`, tone: toneFor(d.pct, LIMITS.diskWarn, LIMITS.diskCrit) });
+      for (const c of n.containers) if (c.health === 'unhealthy') problems.push({ text: `El contenedor ${c.name} tiene problemas`, tone: 'crit' });
     }
   }
   if (!isError(data.services)) {
-    for (const s of data.services) if (s.status === 'down') problems.push(`${s.name} está caído`);
+    for (const s of data.services) if (s.status === 'down') problems.push({ text: `${s.name} está caído`, tone: 'crit' });
   }
   if (!isError(data.backups)) {
     const st = backupState(data.backups, now);
-    if (st.tone === 'crit') problems.push('El último backup falló');
-    if (st.tone === 'warn') problems.push('El backup diario está atrasado');
+    if (st.tone === 'crit') problems.push({ text: 'El último backup falló', tone: 'crit' });
+    if (st.tone === 'warn') problems.push({ text: 'El backup diario está atrasado', tone: 'warn' });
   }
   if (!isError(data.originCert) && data.originCert.configured && !('error' in data.originCert)) {
     const days = data.originCert.daysRemaining;
-    if (days != null && days <= LIMITS.certWarnDays) problems.push(`El certificado del servidor vence en ${days} días`);
+    if (days != null && days <= LIMITS.certWarnDays) problems.push({ text: `El certificado vence en ${days} días`, tone: certTone(days) });
   }
   return problems;
+}
+
+function greeting(now: number) {
+  const hour = Number(new Intl.DateTimeFormat('es-AR', { hour: 'numeric', hourCycle: 'h23', timeZone: TZ }).format(now));
+  const hello = hour >= 6 && hour < 13 ? 'Buen día' : hour >= 13 && hour < 20 ? 'Buenas tardes' : 'Buenas noches';
+  const date = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: TZ }).format(now);
+  return `${hello}, ${OWNER}. Hoy es ${date}.`;
+}
+
+function Hero({ nodes, problems, error, offlineSince, generatedAt, now }: {
+  nodes: ServerNode[];
+  problems: { text: string; tone: Tone }[];
+  error?: string;
+  offlineSince?: number;
+  generatedAt: string;
+  now: number;
+}) {
+  const shown = problems.slice(0, 4);
+  let title: React.ReactNode;
+  if (error) title = offlineSince ? 'No llego al servidor.' : 'No pude actualizar los datos.';
+  else if (problems.length) title = problems.length === 1 ? 'Hay una cosa para revisar.' : `Hay ${problems.length} cosas para revisar.`;
+  else if (nodes.length === 1) title = <><b>{nodes[0].name}</b> está en línea y todo anda bien.</>;
+  else title = `Tus ${nodes.length} equipos están en línea y todo anda bien.`;
+
+  return (
+    <div className="d-hero a-hero">
+      <p className="d-hero-greet">{greeting(now)}</p>
+      <h1 className="d-hero-title">{title}</h1>
+      {error ? (
+        <p className="d-hero-meta">
+          {offlineSince ? `Sin respuesta desde ${formatRelative(new Date(offlineSince).toISOString(), now)}. ` : `${error} `}
+          Lo que ves son los últimos datos, del {formatDateTime(generatedAt)}.
+        </p>
+      ) : (
+        shown.length > 0 && (
+          <div className="d-hero-issues">
+            {shown.map((p) => (
+              <p key={p.text} className={`d-hero-issue d-glass ${t(p.tone)}`}>
+                <CircleAlert aria-hidden /> {p.text}
+              </p>
+            ))}
+            {problems.length > shown.length && <p className="d-hero-more">Y {problems.length - shown.length} más.</p>}
+          </div>
+        )
+      )}
+    </div>
+  );
 }
 
 // ---------- página ----------
@@ -485,10 +566,18 @@ type LoadState =
   | { kind: 'ready'; data: Overview; fetchedAt: number; offlineSince?: number; error?: string }
   | { kind: 'failed'; error: string; offline: boolean; status: number };
 
+const SECTIONS = [
+  { href: '#equipo', label: 'Equipo', icon: Server },
+  { href: '#juegos', label: 'Juegos', icon: Gamepad2 },
+  { href: '#backups', label: 'Backups', icon: Archive },
+  { href: '#servicios', label: 'Servicios', icon: Activity },
+];
+
 export default function Dashboard({ fontClassName = '' }: { fontClassName?: string }) {
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
   const [refreshing, setRefreshing] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  const [selected, setSelected] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setRefreshing(true);
@@ -542,95 +631,97 @@ export default function Dashboard({ fontClassName = '' }: { fontClassName?: stri
   }, [load]);
 
   const problems = useMemo(() => (state.kind === 'ready' ? findProblems(state.data, now) : []), [state, now]);
-  const summaryTone: Tone = state.kind !== 'ready' ? 'muted' : state.error ? 'crit' : problems.length ? 'warn' : 'ok';
+  const nodes = state.kind === 'ready' && !isError(state.data.nodes) ? state.data.nodes : [];
+  const node = nodes.find((n) => n.id === selected) ?? nodes[0];
+  const mood = state.kind !== 'ready' ? '' : state.error || problems.some((p) => p.tone === 'crit') ? 'd-mood-crit' : problems.length ? 'd-mood-warn' : '';
 
   return (
-    <main className={`dash ${fontClassName}`}>
+    <main className={`dash ${mood} ${fontClassName}`}>
       <div className="dash-wrap">
-        <header className="d-top">
-          <div>
-            <h1>Centro de control</h1>
-            <p className="d-sub">
-              thesortty.dev
-              {state.kind === 'ready' && ` · actualizado ${formatRelative(new Date(state.fetchedAt).toISOString(), now)}`}
-            </p>
-          </div>
-          <nav className="d-actions" aria-label="Accesos">
-            {LINKS.map((l) => (
-              <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className="d-btn">
-                {l.label} <ExternalLink aria-hidden />
-              </a>
-            ))}
-            <button type="button" onClick={load} disabled={refreshing} className="d-btn">
-              <RefreshCw className={refreshing ? 'd-spin' : ''} aria-hidden />
-              Actualizar
-            </button>
-          </nav>
-        </header>
+        <nav className="d-dock d-dock-top d-glass" aria-label="Secciones">
+          <a href="#inicio" aria-label="Inicio" className="d-icon-only"><House aria-hidden /></a>
+          {SECTIONS.map((s) => (
+            <a key={s.href} href={s.href}>
+              <s.icon aria-hidden /><span className="d-hide-sm">{s.label}</span>
+            </a>
+          ))}
+          <span className="d-sep" aria-hidden />
+          <a href="https://panel.thesortty.dev" target="_blank" rel="noreferrer" aria-label="Abrir Pterodactyl" title="Pterodactyl">
+            <span className="d-hide-sm">Panel</span><ExternalLink aria-hidden />
+          </a>
+          <a href="https://kuma.thesortty.dev" target="_blank" rel="noreferrer" aria-label="Abrir Uptime Kuma" title="Uptime Kuma">
+            <span className="d-hide-sm">Kuma</span><ExternalLink aria-hidden />
+          </a>
+          <span className="d-sep" aria-hidden />
+          <button type="button" onClick={load} disabled={refreshing} aria-label="Actualizar" title="Actualizar" className="d-icon-only">
+            <RefreshCw className={refreshing ? 'd-spin' : ''} aria-hidden />
+          </button>
+        </nav>
 
         {state.kind === 'loading' && (
-          <p className="d-loading" role="status">
-            <LoaderCircle className="d-spin" aria-hidden /> Consultando el servidor…
-          </p>
+          <div className="d-center">
+            <p className="d-loading" role="status">
+              <LoaderCircle className="d-spin" aria-hidden /> Consultando el servidor…
+            </p>
+          </div>
         )}
 
         {state.kind === 'failed' && (
-          <div className={`d-card d-fail ${t(state.offline || state.status === 0 ? 'crit' : 'warn')}`}>
-            {state.status === 403 || state.status === 401 ? <Lock aria-hidden /> : <CloudOff aria-hidden />}
-            <h2>
-              {state.offline ? 'El servidor no responde' : state.status === 401 ? 'Sesión vencida' : state.status === 403 ? 'Sin acceso' : 'No se pudo cargar el estado'}
-            </h2>
-            <p>
-              {state.offline
-                ? 'La PC puede estar apagada o sin internet. Si se cortó la luz, va a volver sola cuando se prenda.'
-                : state.error}
-            </p>
-            <button type="button" className="d-btn" onClick={state.status === 401 ? () => window.location.reload() : load}>
-              {state.status === 401 ? 'Volver a entrar' : 'Reintentar'}
-            </button>
+          <div className="d-center">
+            <div className={`d-tile d-glass d-fail ${t(state.offline || state.status === 0 ? 'crit' : 'warn')}`}>
+              {state.status === 403 || state.status === 401 ? <Lock aria-hidden /> : <CloudOff aria-hidden />}
+              <h2>
+                {state.offline ? 'El servidor no responde' : state.status === 401 ? 'Sesión vencida' : state.status === 403 ? 'Sin acceso' : 'No se pudo cargar el estado'}
+              </h2>
+              <p>
+                {state.offline
+                  ? 'La PC puede estar apagada o sin internet. Si se cortó la luz, va a volver sola cuando se prenda.'
+                  : state.error}
+              </p>
+              <button type="button" className="d-text-btn" onClick={state.status === 401 ? () => window.location.reload() : load}>
+                {state.status === 401 ? 'Volver a entrar' : 'Reintentar'}
+              </button>
+            </div>
           </div>
         )}
 
         {state.kind === 'ready' && (
-          <>
-            <div className={`d-summary ${t(summaryTone)}`} role="status">
-              {summaryTone === 'ok' ? <CircleCheck aria-hidden /> : <CircleAlert aria-hidden />}
-              <div className="d-summary-body">
-                {state.error ? (
-                  <p>
-                    <strong>
-                      {state.offlineSince ? `El servidor no responde desde ${formatRelative(new Date(state.offlineSince).toISOString(), now)}.` : state.error}
-                    </strong>{' '}
-                    Estos son los últimos datos recibidos ({formatDateTime(state.data.generatedAt)}).
-                  </p>
-                ) : problems.length ? (
-                  <>
-                    <strong>{problems.length === 1 ? 'Hay 1 cosa para revisar' : `Hay ${problems.length} cosas para revisar`}</strong>
-                    <ul>
-                      {problems.map((p) => <li key={p}>{p}</li>)}
-                    </ul>
-                  </>
-                ) : (
-                  <strong>Todo funcionando</strong>
-                )}
-              </div>
-            </div>
+          <div id="inicio" className={`d-bento ${state.error ? 'd-is-stale' : ''}`}>
+            <Hero
+              nodes={nodes}
+              problems={problems}
+              error={state.error}
+              offlineSince={state.offlineSince}
+              generatedAt={state.data.generatedAt}
+              now={now}
+            />
+            {isError(state.data.nodes) ? (
+              <Tile area="a-node" title="Equipos"><SectionError message={state.data.nodes.error} /></Tile>
+            ) : !node ? (
+              <Tile area="a-node" title="Equipos"><p className="d-empty">Todavía no hay equipos agregados en Beszel.</p></Tile>
+            ) : (
+              <>
+                <NodeTile key={node.id} node={node} now={now} />
+                <TempTile node={node} />
+                <NetTile node={node} />
+                <DisksTile node={node} />
+              </>
+            )}
+            <GamesTile data={state.data.gameServers} />
+            <ServicesTile services={state.data.services} cert={state.data.originCert} now={now} />
+            <BackupsTile data={state.data.backups} now={now} />
+          </div>
+        )}
 
-            <div className={`d-grid ${state.error ? 'd-dim' : ''}`}>
-              <Card title="Equipos" icon={Server} className="d-span">
-                {isError(state.data.nodes) ? (
-                  <SectionError message={state.data.nodes.error} />
-                ) : state.data.nodes.length === 0 ? (
-                  <p className="d-empty">Todavía no hay equipos agregados en Beszel.</p>
-                ) : (
-                  state.data.nodes.map((n) => <NodeCard key={n.id} node={n} now={now} />)
-                )}
-              </Card>
-              <GameServersCard data={state.data.gameServers} />
-              <BackupsCard data={state.data.backups} now={now} />
-              <ServicesCard services={state.data.services} cert={state.data.originCert} now={now} />
-            </div>
-          </>
+        {nodes.length > 1 && (
+          <nav className="d-dock d-glass" aria-label="Equipos">
+            {nodes.map((n) => (
+              <button key={n.id} type="button" aria-current={n.id === node?.id} onClick={() => setSelected(n.id)}>
+                <span className={`d-dot ${t(nodeHealth(n, now).tone)}`} aria-hidden />
+                {n.name}
+              </button>
+            ))}
+          </nav>
         )}
       </div>
     </main>
