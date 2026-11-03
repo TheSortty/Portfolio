@@ -1,0 +1,16 @@
+{
+  "id": "/dashboard",
+  "name": "Centro de control littlemc",
+  "short_name": "littlemc",
+  "description": "Estado del servidor de casa: equipos, servicios, backups y avisos.",
+  "lang": "es",
+  "start_url": "/dashboard",
+  "scope": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0f1013",
+  "theme_color": "#0f1013",
+  "icons": [
+    { "src": "/icons/littlemc-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/littlemc-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowUpRight, Check, Download, Github, Linkedin, Lock, Mail, MessageCircle, Moon, Sun } from 'lucide-react';
 import { PcTower } from './dashboard/art';
-import { content, EMAIL, GITHUB, LINKEDIN, waLink, type Lang } from './content';
+import { content, CV_URL, EMAIL, GITHUB, LINKEDIN, waLink, type Lang } from './content';
 import type { PublicStatus } from './api/status/route';
 import './site.css';
 
@@ -165,7 +165,7 @@ export default function Portfolio() {
               <a className="p-btn p-btn-primary" href="#tecnico">{c.hero.tech}</a>
               <a className="p-btn" href="#desarrollo">{c.hero.dev}</a>
             </div>
-            <a className="p-link" href="/cv.pdf" target="_blank" rel="noopener noreferrer"><Download aria-hidden /> {c.hero.cv}</a>
+            {CV_URL && <a className="p-link" href={CV_URL} target="_blank" rel="noopener noreferrer"><Download aria-hidden /> {c.hero.cv}</a>}
           </div>
           <LiveCard t={c.live} />
         </section>
@@ -208,7 +208,7 @@ export default function Portfolio() {
                   <ul>{g.items.map((i) => <li key={i}>{i}</li>)}</ul>
                 </div>
               ))}
-              <a className="p-btn" href="/cv.pdf" target="_blank" rel="noopener noreferrer"><Download aria-hidden /> {c.hero.cv}</a>
+              {CV_URL && <a className="p-btn" href={CV_URL} target="_blank" rel="noopener noreferrer"><Download aria-hidden /> {c.hero.cv}</a>}
             </div>
           </div>
         </section>

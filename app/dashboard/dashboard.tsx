@@ -46,6 +46,7 @@ import {
   type Tone,
 } from './format';
 import { CloudVault, GrassBlock, PcTower, Router } from './art';
+import { NotifyControl } from './notify';
 import './dashboard.css';
 
 const REFRESH_MS = 30_000;
@@ -555,6 +556,7 @@ function Hero({ nodes, problems, error, offlineSince, generatedAt, now }: {
           </div>
         )
       )}
+      <NotifyControl />
     </div>
   );
 }

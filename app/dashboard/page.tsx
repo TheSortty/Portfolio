@@ -18,12 +18,18 @@ const plexSans = localFont({
 
 // Página privada: Cloudflare Access la protege antes de que llegue al Worker,
 // y /api/dashboard vuelve a verificar la sesión antes de devolver datos.
+// También se puede instalar como app (PWA): manifiesto, ícono y service worker
+// viven fuera de /dashboard para que el celular los lea sin pasar por Access.
 export const metadata: Metadata = {
-  title: 'Centro de control · thesortty.dev',
+  title: 'Centro de control littlemc',
   robots: { index: false, follow: false },
+  manifest: '/littlemc.webmanifest',
+  appleWebApp: { capable: true, title: 'littlemc', statusBarStyle: 'black-translucent' },
+  icons: { icon: '/favicon.svg', apple: '/icons/littlemc-apple-180.png' },
 };
 
 export const viewport: Viewport = {
+  viewportFit: 'cover',
   colorScheme: 'light dark',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#e6e2dc' },

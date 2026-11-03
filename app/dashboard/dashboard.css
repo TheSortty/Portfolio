@@ -96,7 +96,9 @@
 .dash-wrap {
   max-width: 88rem;
   margin: 0 auto;
-  padding-block: 16px 32px;
+  /* Instalado como app en el iPhone, la página corre bajo la barra de estado. */
+  padding-top: max(16px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(32px, env(safe-area-inset-bottom, 0px));
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   display: flex;
@@ -104,7 +106,7 @@
   gap: 16px;
 }
 @media (min-width: 900px) {
-  .dash-wrap { padding-block: 24px 40px; padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); gap: 20px; }
+  .dash-wrap { padding-top: max(24px, env(safe-area-inset-top, 0px)); padding-bottom: max(40px, env(safe-area-inset-bottom, 0px)); padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); gap: 20px; }
 }
 
 /* ---------- vidrio ---------- */
@@ -469,3 +471,23 @@
   .d-bar > span, .d-dot, .d-chip::before { background: CanvasText; }
   .d-glass { border-color: CanvasText; }
 }
+
+/* ---------- avisos en este dispositivo ---------- */
+
+.d-notify {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 10px 10px 14px;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  color: var(--d-text-2);
+}
+.d-notify > svg { width: 18px; height: 18px; color: var(--tone, var(--d-text-3)); flex-shrink: 0; }
+.d-notify p { flex: 1 1 14rem; min-width: 0; }
+.d-notify p b { color: var(--d-text); font-weight: 600; }
+.d-notify-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.d-text-btn.is-primary { background: var(--d-accent); color: var(--d-glass-solid); }
+.d-text-btn.is-primary:hover { color: var(--d-glass-solid); filter: brightness(1.05); }
+.d-text-btn:disabled { opacity: 0.6; cursor: default; }

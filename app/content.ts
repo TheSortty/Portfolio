@@ -7,6 +7,9 @@ export const WHATSAPP = '5492612407277';
 export const EMAIL = 'gonzalo.d.murguia@gmail.com';
 export const LINKEDIN = 'https://www.linkedin.com/in/gonzalo-murguia-5135b23b4/';
 export const GITHUB = 'https://github.com/TheSortty';
+// Vacío mientras public/cv.pdf sea un archivo de relleno: así no se muestra el botón.
+// Cuando subas el PDF real a public/cv.pdf, poné '/cv.pdf'.
+export const CV_URL = '';
 
 export const waLink = (text: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
 
