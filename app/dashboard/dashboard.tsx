@@ -49,42 +49,21 @@ import {
   toneFor,
   type Tone,
 } from './format';
+import './dashboard.css';
 
 const REFRESH_MS = 30_000;
 
 const LINKS = [
   { label: 'Panel', href: 'https://panel.thesortty.dev' },
-  { label: 'Uptime Kuma', href: 'https://kuma.thesortty.dev' },
+  { label: 'Kuma', href: 'https://kuma.thesortty.dev' },
 ];
 
 // ---------- piezas visuales ----------
 
-const toneText: Record<Tone, string> = {
-  ok: 'text-[var(--primary)]',
-  warn: 'text-[var(--accent)]',
-  crit: 'text-[#F87171]',
-  muted: 'text-[var(--text-muted)]',
-};
-const toneBg: Record<Tone, string> = {
-  ok: 'bg-[var(--primary)]',
-  warn: 'bg-[var(--accent)]',
-  crit: 'bg-[#F87171]',
-  muted: 'bg-[var(--text-muted)]',
-};
-const toneChip: Record<Tone, string> = {
-  ok: 'border-[var(--primary)]/40 bg-[var(--primary)]/10 text-[var(--primary)]',
-  warn: 'border-[var(--accent)]/40 bg-[var(--accent)]/10 text-[var(--accent)]',
-  crit: 'border-[#F87171]/40 bg-[#F87171]/10 text-[#F87171]',
-  muted: 'border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)]',
-};
+const t = (tone: Tone) => `t-${tone}`;
 
 function Chip({ tone, children }: { tone: Tone; children: React.ReactNode }) {
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5! py-0.5! text-xs font-bold whitespace-nowrap ${toneChip[tone]}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${toneBg[tone]}`} aria-hidden />
-      {children}
-    </span>
-  );
+  return <span className={`d-chip ${t(tone)}`}>{children}</span>;
 }
 
 function Card({ title, icon: Icon, action, children, className = '' }: {
@@ -95,77 +74,100 @@ function Card({ title, icon: Icon, action, children, className = '' }: {
   className?: string;
 }) {
   return (
-    <section className={`min-w-0 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5! sm:p-6! ${className}`}>
-      <header className="mb-5! flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2.5 text-lg font-bold text-[var(--text-primary)]">
-          <Icon className="h-5 w-5 text-[var(--cyan)]" aria-hidden />
+    <section className={`d-card ${className}`}>
+      <header className="d-card-head">
+        <h2>
+          <Icon aria-hidden />
           {title}
         </h2>
         {action}
       </header>
-      {children}
+      <div className="d-card-body">{children}</div>
     </section>
   );
 }
 
 function Bar({ value, tone }: { value: number | null; tone: Tone }) {
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--bg-hover)]" role="presentation">
-      <div className={`h-full rounded-full transition-[width] duration-500 ${toneBg[tone]}`} style={{ width: `${Math.min(100, Math.max(0, value ?? 0))}%` }} />
+    <div className={`d-bar ${t(tone)}`} role="presentation">
+      <span style={{ width: `${Math.min(100, Math.max(0, value ?? 0))}%` }} />
     </div>
   );
 }
 
-function Sparkline({ points, field, max, tone }: { points: HistoryPoint[]; field: 'cpu' | 'temp' | 'mem'; max: number; tone: Tone }) {
+function Sparkline({ points, field, max, tone, unit }: {
+  points: HistoryPoint[];
+  field: 'cpu' | 'temp' | 'mem';
+  max: number;
+  tone: Tone;
+  unit: string;
+}) {
   const values = points.map((p) => p[field]).filter((v): v is number => v != null);
   if (values.length < 2) return null;
   const w = 120;
-  const h = 32;
+  const h = 36;
   const step = w / (values.length - 1);
-  const y = (v: number) => h - 2 - (Math.min(v, max) / max) * (h - 4);
+  const y = (v: number) => h - 3 - (Math.min(v, max) / max) * (h - 6);
   const line = values.map((v, i) => `${i === 0 ? 'M' : 'L'}${(i * step).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const peak = Math.max(...values);
+  const label = `Última hora: mínimo ${Math.round(Math.min(...values))}${unit}, máximo ${Math.round(peak)}${unit}`;
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className={`h-8 w-full ${toneText[tone]}`} preserveAspectRatio="none" aria-hidden>
-      <path d={`${line} L${w},${h} L0,${h} Z`} fill="currentColor" opacity="0.12" />
-      <path d={line} fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-      <circle cx={w} cy={y(values[values.length - 1])} r="2.2" fill="currentColor" />
-    </svg>
+    <div>
+      <svg viewBox={`0 0 ${w} ${h}`} className={`d-spark ${t(tone)}`} preserveAspectRatio="none" role="img" aria-label={label}>
+        <title>{label}</title>
+        <line x1="0" x2={w} y1={h / 2} y2={h / 2} stroke="currentColor" opacity="0.12" vectorEffect="non-scaling-stroke" />
+        <path d={`${line} L${w},${h} L0,${h} Z`} fill="currentColor" opacity="0.1" />
+        <path d={line} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+      </svg>
+      <div className="d-spark-cap">
+        <span>última hora</span>
+        <span className="num">máx {Math.round(peak)}{unit}</span>
+      </div>
+    </div>
   );
 }
 
 function SectionError({ message }: { message: string }) {
   return (
-    <p className="flex items-center gap-2 rounded-xl border border-[#F87171]/30 bg-[#F87171]/5 px-4! py-3! text-sm text-[#F87171]">
-      <CircleAlert className="h-4 w-4 shrink-0" aria-hidden /> {message}
+    <p className="d-error">
+      <CircleAlert aria-hidden /> {message}
     </p>
   );
 }
 
-const mono = 'font-[family-name:var(--font-code)] tabular-nums';
+// ---------- equipos ----------
 
-// ---------- PCs ----------
-
-function Metric({ icon: Icon, label, value, detail, tone, bar, spark }: {
+function Metric({ icon: Icon, label, value, unit, detail, tone, bar, spark }: {
   icon: React.ElementType;
   label: string;
   value: string;
+  unit?: string;
   detail?: string;
   tone: Tone;
   bar?: number | null;
   spark?: React.ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-[var(--bg-darker)]/60 p-3.5!">
-      <span className="flex items-center gap-1.5 text-xs font-bold tracking-wide text-[var(--text-muted)] uppercase">
-        <Icon className="h-3.5 w-3.5" aria-hidden /> {label}
+    <div className="d-metric">
+      <span className="d-label">
+        <Icon aria-hidden /> {label}
       </span>
-      <span className={`text-2xl font-bold leading-none ${mono} ${toneText[tone]}`}>{value}</span>
-      {detail && <span className="text-xs text-[var(--text-muted)]">{detail}</span>}
+      <div className="d-value-row">
+        <span className="d-value num">
+          {value}
+          {unit && value !== '—' && <small>{unit}</small>}
+        </span>
+        {(tone === 'warn' || tone === 'crit') && <span className={`d-flag ${t(tone)}`}>{tone === 'crit' ? 'Alto' : 'Elevado'}</span>}
+      </div>
+      {detail && <span className="d-detail">{detail}</span>}
       {bar !== undefined && <Bar value={bar} tone={tone} />}
       {spark}
     </div>
   );
 }
+
+const num = (n: number | null | undefined, digits = 1) =>
+  n == null ? '—' : n.toLocaleString('es-AR', { maximumFractionDigits: digits });
 
 function NodeCard({ node, now }: { node: ServerNode; now: number }) {
   const [showContainers, setShowContainers] = useState(false);
@@ -178,97 +180,98 @@ function NodeCard({ node, now }: { node: ServerNode; now: number }) {
   const unhealthy = node.containers.filter((c) => c.health === 'unhealthy').length;
 
   return (
-    <article className="min-w-0 rounded-xl border border-[var(--border)] bg-[var(--bg-dark)]/40 p-4! sm:p-5!">
-      <div className="mb-4! flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Server className="h-5 w-5 text-[var(--text-secondary)]" aria-hidden />
-          <h3 className={`text-lg font-bold ${mono}`}>{node.name}</h3>
+    <article className="d-node">
+      <div className="d-node-head">
+        <div className="d-node-name">
+          <h3 className="mono">{node.name}</h3>
           <Chip tone={statusTone}>{statusLabel}</Chip>
         </div>
-        <span className="text-xs text-[var(--text-muted)]">
-          Encendida hace {formatDuration(node.uptimeSec)} · actualizado {formatRelative(node.updatedAt, now)}
+        <span className="d-meta">
+          Encendida hace {formatDuration(node.uptimeSec)} · datos {formatRelative(node.updatedAt, now)}
         </span>
       </div>
 
-      <div className={statusTone === 'ok' ? '' : 'opacity-50'} title={statusTone === 'ok' ? undefined : 'Últimos datos recibidos'}>
-      <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-3">
-        <Metric
-          icon={Thermometer}
-          label="Temperatura"
-          value={node.cpuTemp == null ? '—' : `${Math.round(node.cpuTemp)} °C`}
-          detail={`Alerta desde ${LIMITS.tempWarn} °C`}
-          tone={tempTone}
-          spark={<Sparkline points={node.history} field="temp" max={100} tone={tempTone === 'muted' ? 'ok' : tempTone} />}
-        />
-        <Metric
-          icon={Cpu}
-          label="CPU"
-          value={pct(node.cpuPct)}
-          detail={node.load ? `Carga ${node.load.map((l) => l.toFixed(2)).join(' · ')}` : undefined}
-          tone={cpuTone}
-          spark={<Sparkline points={node.history} field="cpu" max={100} tone={cpuTone === 'muted' ? 'ok' : cpuTone} />}
-        />
-        <Metric
-          icon={MemoryStick}
-          label="Memoria"
-          value={pct(node.memPct)}
-          detail={`${node.memUsedGB ?? '—'} de ${node.memTotalGB ?? '—'} GB`}
-          tone={memTone}
-          bar={node.memPct}
-        />
-      </div>
+      <div className={statusTone === 'ok' ? '' : 'd-dim'} title={statusTone === 'ok' ? undefined : 'Últimos datos recibidos'}>
+        <div className="d-metrics">
+          <Metric
+            icon={Thermometer}
+            label="Temperatura"
+            value={node.cpuTemp == null ? '—' : String(Math.round(node.cpuTemp))}
+            unit="°C"
+            detail={`Alerta desde ${LIMITS.tempWarn} °C`}
+            tone={tempTone}
+            spark={<Sparkline points={node.history} field="temp" max={100} tone={tempTone} unit=" °C" />}
+          />
+          <Metric
+            icon={Cpu}
+            label="Procesador"
+            value={num(node.cpuPct)}
+            unit="%"
+            detail={node.load ? `Carga ${node.load.map((l) => num(l, 2)).join(' · ')}` : undefined}
+            tone={cpuTone}
+            spark={<Sparkline points={node.history} field="cpu" max={100} tone={cpuTone} unit=" %" />}
+          />
+          <Metric
+            icon={MemoryStick}
+            label="Memoria"
+            value={num(node.memPct)}
+            unit="%"
+            detail={`${num(node.memUsedGB)} de ${num(node.memTotalGB)} GB`}
+            tone={memTone}
+            bar={node.memPct}
+          />
+        </div>
 
-      <div className="mt-5! grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-        {node.disks.map((d) => {
-          const tone = toneFor(d.pct, LIMITS.diskWarn, LIMITS.diskCrit);
-          return (
-            <div key={d.key} className="flex min-w-0 flex-col gap-1.5">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-2 text-sm">
-                <span className="flex items-center gap-1.5 text-[var(--text-secondary)]">
-                  <HardDrive className="h-3.5 w-3.5 shrink-0 text-[var(--text-muted)]" aria-hidden /> {d.label}
-                </span>
-                <span className={`shrink-0 text-xs ${mono} ${tone === 'ok' ? 'text-[var(--text-muted)]' : toneText[tone]}`}>
-                  {formatGB(d.usedGB)} / {formatGB(d.totalGB)} · {pct(d.pct)}
-                </span>
+        <div className="d-disks">
+          {node.disks.map((d) => {
+            const tone = toneFor(d.pct, LIMITS.diskWarn, LIMITS.diskCrit);
+            return (
+              <div key={d.key} className="d-disk">
+                <div className="d-disk-row">
+                  <span className="d-label">
+                    <HardDrive aria-hidden /> {d.label}
+                  </span>
+                  <span className={`num ${t(tone)}`}>
+                    {formatGB(d.usedGB)} de {formatGB(d.totalGB)} · {pct(d.pct)}
+                  </span>
+                </div>
+                <Bar value={d.pct} tone={tone} />
               </div>
-              <Bar value={d.pct} tone={tone} />
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="mt-5! flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4! text-sm">
-        <span className={`flex items-center gap-4 text-[var(--text-secondary)] ${mono}`}>
-          <span className="flex items-center gap-1"><ArrowUp className="h-3.5 w-3.5 text-[var(--cyan)]" aria-label="Subida" />{formatRate(node.net?.upBps)}</span>
-          <span className="flex items-center gap-1"><ArrowDown className="h-3.5 w-3.5 text-[var(--purple)]" aria-label="Bajada" />{formatRate(node.net?.downBps)}</span>
+      <div className="d-node-foot">
+        <span className="d-net num">
+          <span><ArrowUp aria-label="Subida" />{formatRate(node.net?.upBps)}</span>
+          <span><ArrowDown aria-label="Bajada" />{formatRate(node.net?.downBps)}</span>
         </span>
-        <button
-          type="button"
-          onClick={() => setShowContainers((v) => !v)}
-          aria-expanded={showContainers}
-          className="flex items-center gap-1.5 rounded-lg px-2! py-1! text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] focus-visible:outline-2 focus-visible:outline-[var(--primary)]"
-        >
-          <Box className="h-4 w-4" aria-hidden />
-          {node.containers.length} contenedores{unhealthy > 0 && <span className="text-[#F87171]"> · {unhealthy} con problemas</span>}
-          {showContainers ? <ChevronUp className="h-4 w-4" aria-hidden /> : <ChevronDown className="h-4 w-4" aria-hidden />}
+        <button type="button" className="d-link-btn" onClick={() => setShowContainers((v) => !v)} aria-expanded={showContainers}>
+          <Box aria-hidden />
+          {node.containers.length} contenedores
+          {unhealthy > 0 && <span className="t-crit"> · {unhealthy} con problemas</span>}
+          {showContainers ? <ChevronUp aria-hidden /> : <ChevronDown aria-hidden />}
         </button>
       </div>
 
       {showContainers && (
-        <ul className="mt-3! divide-y divide-[var(--border)] rounded-lg border border-[var(--border)] text-sm">
-          {node.containers.map((c) => (
-            <li key={c.name} className="flex flex-wrap items-center justify-between gap-2 px-3! py-2!">
-              <span className="flex min-w-0 items-center gap-2">
-                <span className={`h-2 w-2 shrink-0 rounded-full ${toneBg[c.health === 'unhealthy' ? 'crit' : c.status.startsWith('Up') ? 'ok' : 'muted']}`} aria-hidden />
-                <span className={`truncate ${mono}`}>{c.name}</span>
-              </span>
-              <span className={`text-xs text-[var(--text-muted)] ${mono}`}>
-                {c.status} · {c.memMB ?? '—'} MB · CPU {pct(c.cpuPct)}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <div className="d-containers">
+          <ul className="d-list">
+            {node.containers.map((c) => (
+              <li key={c.name}>
+                <span className="d-cname">
+                  <span className={`d-dot ${t(c.health === 'unhealthy' ? 'crit' : c.status.startsWith('Up') ? 'ok' : 'muted')}`} aria-hidden />
+                  <span className="mono">{c.name}</span>
+                </span>
+                <span className="d-right num">
+                  <span>{c.memMB ?? '—'} MB</span>
+                  <span>CPU {pct(c.cpuPct)}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </article>
   );
@@ -292,27 +295,25 @@ function GameServersCard({ data }: { data: GameServers | { error: string } }) {
       {isError(data) ? (
         <SectionError message={data.error} />
       ) : !data.configured ? (
-        <p className="text-sm leading-relaxed text-[var(--text-muted)]">
-          Falta conectar Pterodactyl: creá un usuario para el dashboard y cargá su clave de API en el servidor.
-        </p>
+        <p className="d-empty">Falta conectar Pterodactyl: creá un usuario para el dashboard y cargá su clave de API en el servidor.</p>
       ) : data.servers.length === 0 ? (
-        <p className="text-sm text-[var(--text-muted)]">El usuario del dashboard no tiene servidores asignados.</p>
+        <p className="d-empty">El usuario del dashboard no tiene servidores asignados.</p>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="d-list">
           {data.servers.map((s) => {
             const st = GAME_STATE[s.state] ?? GAME_STATE.unknown;
             return (
-              <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[var(--bg-darker)]/60 px-4! py-3!">
-                <div className="min-w-0">
-                  <p className="truncate font-bold">{s.name}</p>
-                  <p className={`text-xs text-[var(--text-muted)] ${mono}`}>
+              <li key={s.id}>
+                <div style={{ minWidth: 0 }}>
+                  <p className="d-name">{s.name}</p>
+                  <p className="d-meta mono">
                     {s.node}{s.port ? ` · puerto ${s.port}` : ''}
                     {s.state === 'running' && ` · ${formatDuration((s.uptimeMs ?? 0) / 1000)}`}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="d-right num">
                   {s.state === 'running' && (
-                    <span className={`text-xs text-[var(--text-secondary)] ${mono}`}>
+                    <span>
                       {formatBytes(s.memBytes)}{s.limits.memMB ? ` / ${formatBytes(s.limits.memMB * 1024 * 1024)}` : ''} · CPU {pct(s.cpuPct)}
                     </span>
                   )}
@@ -345,20 +346,20 @@ function certTone(days: number | null | undefined): Tone {
 
 function ServicesCard({ services, cert, now }: { services: Service[] | { error: string }; cert: OriginCert | { error: string }; now: number }) {
   return (
-    <Card title="Servicios" icon={Activity} className="lg:col-span-2">
+    <Card title="Servicios" icon={Activity} className="d-span">
       {isError(services) ? (
         <SectionError message={services.error} />
       ) : services.length === 0 ? (
-        <p className="text-sm text-[var(--text-muted)]">No hay monitores en Uptime Kuma.</p>
+        <p className="d-empty">No hay monitores en Uptime Kuma.</p>
       ) : (
-        <ul className="flex flex-col divide-y divide-[var(--border)]">
+        <ul className="d-list">
           {services.map((s) => {
             const st = SERVICE_STATE[s.status] ?? SERVICE_STATE.unknown;
             return (
-              <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-3! first:pt-0!">
-                <div className="min-w-0">
-                  <p className="font-bold">{s.name}</p>
-                  <p className="truncate text-xs text-[var(--text-muted)]" title={s.message ?? undefined}>
+              <li key={s.id}>
+                <div style={{ minWidth: 0 }}>
+                  <p className="d-name">{s.name}</p>
+                  <p className="d-meta" title={s.message ?? undefined}>
                     {s.status === 'down' && s.message
                       ? s.message
                       : s.status === 'paused'
@@ -366,8 +367,8 @@ function ServicesCard({ services, cert, now }: { services: Service[] | { error: 
                         : `Revisado ${formatRelative(s.checkedAt, now)}`}
                   </p>
                 </div>
-                <div className={`flex items-center gap-3 text-xs text-[var(--text-secondary)] ${mono}`}>
-                  {s.uptime24h != null && <span title="Disponibilidad en las últimas 24 horas">{pct(s.uptime24h)} 24 h</span>}
+                <div className="d-right num">
+                  {s.uptime24h != null && <span title="Disponibilidad en las últimas 24 horas">{pct(s.uptime24h)} en 24 h</span>}
                   {s.pingMs != null && s.status === 'up' && <span>{s.pingMs} ms</span>}
                   <Chip tone={st.tone}>{st.label}</Chip>
                 </div>
@@ -377,32 +378,26 @@ function ServicesCard({ services, cert, now }: { services: Service[] | { error: 
         </ul>
       )}
 
-      <div className="mt-5! border-t border-[var(--border)] pt-4!">
-        {isError(cert) ? (
-          <SectionError message={cert.error} />
-        ) : !cert.configured ? null : 'error' in cert ? (
-          <SectionError message={`Certificado del panel: ${cert.error}`} />
-        ) : (
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5">
-              {certTone(cert.daysRemaining) === 'ok' ? (
-                <ShieldCheck className="h-5 w-5 text-[var(--primary)]" aria-hidden />
-              ) : (
-                <ShieldAlert className={`h-5 w-5 ${toneText[certTone(cert.daysRemaining)]}`} aria-hidden />
-              )}
-              <div>
-                <p className="text-sm font-bold">Certificado del servidor</p>
-                <p className="text-xs text-[var(--text-muted)]">
-                  {cert.issuer ?? 'Emisor desconocido'} · vence {formatDateTime(cert.validTo)}
-                </p>
-              </div>
+      {isError(cert) ? (
+        <div className="d-cert"><SectionError message={cert.error} /></div>
+      ) : !cert.configured ? null : 'error' in cert ? (
+        <div className="d-cert"><SectionError message={`Certificado del panel: ${cert.error}`} /></div>
+      ) : (
+        <div className="d-cert">
+          <div className={`d-cert-info ${t(certTone(cert.daysRemaining))}`}>
+            {certTone(cert.daysRemaining) === 'ok' ? <ShieldCheck aria-hidden /> : <ShieldAlert aria-hidden />}
+            <div>
+              <p className="d-name">Certificado del servidor</p>
+              <p className="d-meta">
+                {cert.issuer ?? 'Emisor desconocido'} · vence {formatDateTime(cert.validTo)}
+              </p>
             </div>
-            <Chip tone={certTone(cert.daysRemaining)}>
-              {cert.daysRemaining == null ? 'Sin datos' : cert.daysRemaining < 0 ? 'Vencido' : `${cert.daysRemaining} días`}
-            </Chip>
           </div>
-        )}
-      </div>
+          <Chip tone={certTone(cert.daysRemaining)}>
+            {cert.daysRemaining == null ? 'Sin datos' : cert.daysRemaining < 0 ? 'Vencido' : `${cert.daysRemaining} días`}
+          </Chip>
+        </div>
+      )}
     </Card>
   );
 }
@@ -429,23 +424,23 @@ function BackupsCard({ data, now }: { data: Backups | { error: string }; now: nu
   const lastWeekly = data.weekly[0];
   return (
     <Card title="Backups" icon={Archive} action={<Chip tone={st.tone}>{st.label}</Chip>}>
-      {data.status === 'down' && data.lastMessage && <div className="mb-4!"><SectionError message={data.lastMessage} /></div>}
-      <dl className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+      {data.status === 'down' && data.lastMessage && <div style={{ marginBottom: 16 }}><SectionError message={data.lastMessage} /></div>}
+      <dl className="d-facts">
         {[
-          ['Último backup', formatRelative(data.lastSuccessAt, now), formatDateTime(data.lastSuccessAt)],
+          ['Último', formatRelative(data.lastSuccessAt, now), formatDateTime(data.lastSuccessAt)],
           ['Próximo', formatRelative(data.nextRunAt, now), formatDateTime(data.nextRunAt)],
           ['Servidores de juego', lastWeekly ? formatBytes(lastWeekly.bytes) : '—', lastWeekly ? `copia del ${formatDateTime(lastWeekly.modifiedAt)}` : 'Se copian los domingos'],
           ['Espacio usado', formatBytes(data.totalBytes), `${data.daily.length} diarios · ${data.weekly.length} semanales`],
         ].map(([label, value, detail]) => (
-          <div key={label} className="rounded-xl bg-[var(--bg-darker)]/60 p-3.5!">
-            <dt className="text-xs font-bold tracking-wide text-[var(--text-muted)] uppercase">{label}</dt>
-            <dd className={`mt-1! text-lg font-bold ${mono}`}>{value}</dd>
-            <dd className="text-xs text-[var(--text-muted)]">{detail}</dd>
+          <div key={label} style={{ minWidth: 0 }}>
+            <dt>{label}</dt>
+            <dd className="d-fact-value num">{value}</dd>
+            <dd className="d-fact-detail">{detail}</dd>
           </div>
         ))}
       </dl>
-      <p className="mt-4! flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-        {data.driveOk ? <Cloud className="h-4 w-4 text-[var(--primary)]" aria-hidden /> : <CloudOff className="h-4 w-4 text-[var(--accent)]" aria-hidden />}
+      <p className={`d-note ${t(data.driveOk ? 'ok' : 'warn')}`}>
+        {data.driveOk ? <Cloud aria-hidden /> : <CloudOff aria-hidden />}
         {data.driveOk ? 'Copia cifrada en Google Drive al día' : 'El último backup no subió a Google Drive'}
       </p>
     </Card>
@@ -490,7 +485,7 @@ type LoadState =
   | { kind: 'ready'; data: Overview; fetchedAt: number; offlineSince?: number; error?: string }
   | { kind: 'failed'; error: string; offline: boolean; status: number };
 
-export default function Dashboard() {
+export default function Dashboard({ fontClassName = '' }: { fontClassName?: string }) {
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
   const [refreshing, setRefreshing] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -547,61 +542,50 @@ export default function Dashboard() {
   }, [load]);
 
   const problems = useMemo(() => (state.kind === 'ready' ? findProblems(state.data, now) : []), [state, now]);
+  const summaryTone: Tone = state.kind !== 'ready' ? 'muted' : state.error ? 'crit' : problems.length ? 'warn' : 'ok';
 
   return (
-    <main className="min-h-screen bg-[var(--bg-dark)] text-[var(--text-primary)]">
-      <div className="mx-auto! flex max-w-6xl flex-col gap-6 px-4! py-8! sm:px-6! sm:py-12!">
-        <header className="flex flex-wrap items-end justify-between gap-4">
+    <main className={`dash ${fontClassName}`}>
+      <div className="dash-wrap">
+        <header className="d-top">
           <div>
-            <p className={`text-xs font-bold tracking-[0.25em] text-[var(--primary)] uppercase ${mono}`}>thesortty.dev · privado</p>
-            <h1 className="mt-1! text-3xl font-extrabold text-balance sm:text-4xl">Centro de control</h1>
+            <h1>Centro de control</h1>
+            <p className="d-sub">
+              thesortty.dev
+              {state.kind === 'ready' && ` · actualizado ${formatRelative(new Date(state.fetchedAt).toISOString(), now)}`}
+            </p>
           </div>
-          <nav className="flex flex-wrap items-center gap-2" aria-label="Accesos">
+          <nav className="d-actions" aria-label="Accesos">
             {LINKS.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3! py-2! text-sm text-[var(--text-secondary)] transition-colors hover:border-[var(--cyan)] hover:text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--primary)]"
-              >
-                {l.label} <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+              <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className="d-btn">
+                {l.label} <ExternalLink aria-hidden />
               </a>
             ))}
-            <button
-              type="button"
-              onClick={load}
-              disabled={refreshing}
-              className="flex items-center gap-1.5 rounded-lg bg-[var(--primary)] px-3! py-2! text-sm font-bold text-[var(--bg-darker)] transition-opacity hover:opacity-90 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin motion-reduce:animate-none' : ''}`} aria-hidden />
+            <button type="button" onClick={load} disabled={refreshing} className="d-btn">
+              <RefreshCw className={refreshing ? 'd-spin' : ''} aria-hidden />
               Actualizar
             </button>
           </nav>
         </header>
 
         {state.kind === 'loading' && (
-          <p className="flex items-center gap-2 py-24! text-[var(--text-muted)]" role="status">
-            <LoaderCircle className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden /> Consultando el servidor…
+          <p className="d-loading" role="status">
+            <LoaderCircle className="d-spin" aria-hidden /> Consultando el servidor…
           </p>
         )}
 
         {state.kind === 'failed' && (
-          <div className="flex flex-col items-start gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-8!">
-            {state.status === 403 || state.status === 401 ? <Lock className="h-7 w-7 text-[var(--accent)]" aria-hidden /> : <CloudOff className="h-7 w-7 text-[#F87171]" aria-hidden />}
-            <h2 className="text-xl font-bold">
+          <div className={`d-card d-fail ${t(state.offline || state.status === 0 ? 'crit' : 'warn')}`}>
+            {state.status === 403 || state.status === 401 ? <Lock aria-hidden /> : <CloudOff aria-hidden />}
+            <h2>
               {state.offline ? 'El servidor no responde' : state.status === 401 ? 'Sesión vencida' : state.status === 403 ? 'Sin acceso' : 'No se pudo cargar el estado'}
             </h2>
-            <p className="max-w-prose text-[var(--text-secondary)]">
+            <p>
               {state.offline
                 ? 'La PC puede estar apagada o sin internet. Si se cortó la luz, va a volver sola cuando se prenda.'
                 : state.error}
             </p>
-            <button
-              type="button"
-              onClick={state.status === 401 ? () => window.location.reload() : load}
-              className="mt-2! rounded-lg border border-[var(--border)] px-4! py-2! text-sm hover:border-[var(--primary)]"
-            >
+            <button type="button" className="d-btn" onClick={state.status === 401 ? () => window.location.reload() : load}>
               {state.status === 401 ? 'Volver a entrar' : 'Reintentar'}
             </button>
           </div>
@@ -609,46 +593,39 @@ export default function Dashboard() {
 
         {state.kind === 'ready' && (
           <>
-            <div
-              className={`flex flex-wrap items-start gap-3 rounded-2xl border px-5! py-4! ${
-                state.error ? toneChip.crit : problems.length ? toneChip.warn : toneChip.ok
-              }`}
-              role="status"
-            >
-              {state.error || problems.length ? <CircleAlert className="mt-0.5! h-5 w-5 shrink-0" aria-hidden /> : <CircleCheck className="mt-0.5! h-5 w-5 shrink-0" aria-hidden />}
-              <div className="min-w-0 flex-1">
+            <div className={`d-summary ${t(summaryTone)}`} role="status">
+              {summaryTone === 'ok' ? <CircleCheck aria-hidden /> : <CircleAlert aria-hidden />}
+              <div className="d-summary-body">
                 {state.error ? (
-                  <p className="font-bold">
-                    {state.offlineSince ? `El servidor no responde desde ${formatRelative(new Date(state.offlineSince).toISOString(), now)}. ` : `${state.error} `}
-                    <span className="font-normal">Estos son los últimos datos recibidos ({formatDateTime(state.data.generatedAt)})</span>
+                  <p>
+                    <strong>
+                      {state.offlineSince ? `El servidor no responde desde ${formatRelative(new Date(state.offlineSince).toISOString(), now)}.` : state.error}
+                    </strong>{' '}
+                    Estos son los últimos datos recibidos ({formatDateTime(state.data.generatedAt)}).
                   </p>
                 ) : problems.length ? (
                   <>
-                    <p className="font-bold">{problems.length === 1 ? 'Hay 1 cosa para revisar' : `Hay ${problems.length} cosas para revisar`}</p>
-                    <ul className="mt-1! list-inside list-disc text-sm text-[var(--text-secondary)]">
+                    <strong>{problems.length === 1 ? 'Hay 1 cosa para revisar' : `Hay ${problems.length} cosas para revisar`}</strong>
+                    <ul>
                       {problems.map((p) => <li key={p}>{p}</li>)}
                     </ul>
                   </>
                 ) : (
-                  <p className="font-bold">Todo funcionando</p>
+                  <strong>Todo funcionando</strong>
                 )}
               </div>
-              <span className="text-xs text-[var(--text-muted)]">Actualizado {formatRelative(new Date(state.fetchedAt).toISOString(), now)}</span>
             </div>
 
-            <Card title="Equipos" icon={Server} className={state.error ? 'opacity-60' : ''}>
-              {isError(state.data.nodes) ? (
-                <SectionError message={state.data.nodes.error} />
-              ) : state.data.nodes.length === 0 ? (
-                <p className="text-sm text-[var(--text-muted)]">Todavía no hay equipos agregados en Beszel.</p>
-              ) : (
-                <div className={`grid grid-cols-1 gap-4 ${state.data.nodes.length > 1 ? 'xl:grid-cols-2' : ''}`}>
-                  {state.data.nodes.map((n) => <NodeCard key={n.id} node={n} now={now} />)}
-                </div>
-              )}
-            </Card>
-
-            <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2 ${state.error ? 'opacity-60' : ''}`}>
+            <div className={`d-grid ${state.error ? 'd-dim' : ''}`}>
+              <Card title="Equipos" icon={Server} className="d-span">
+                {isError(state.data.nodes) ? (
+                  <SectionError message={state.data.nodes.error} />
+                ) : state.data.nodes.length === 0 ? (
+                  <p className="d-empty">Todavía no hay equipos agregados en Beszel.</p>
+                ) : (
+                  state.data.nodes.map((n) => <NodeCard key={n.id} node={n} now={now} />)
+                )}
+              </Card>
               <GameServersCard data={state.data.gameServers} />
               <BackupsCard data={state.data.backups} now={now} />
               <ServicesCard services={state.data.services} cert={state.data.originCert} now={now} />

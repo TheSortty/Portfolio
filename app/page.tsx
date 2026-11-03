@@ -19,7 +19,8 @@ import {
   Layout,
   Server,
   MessageCircle,
-  Leaf
+  Leaf,
+  Lock
 } from 'lucide-react';
 import { motion, animate, stagger } from 'motion/react';
 
@@ -1009,6 +1010,7 @@ export default function Portfolio() {
               <div className="footer-social">
                 <a href="https://github.com/TheSortty" target="_blank" rel="noopener noreferrer" className="footer-social-link" aria-label="GitHub"><Github size={20} /></a>
                 <a href="https://www.linkedin.com/in/gonzalo-murguia-5135b23b4/" target="_blank" rel="noopener noreferrer" className="footer-social-link" aria-label="LinkedIn"><Linkedin size={20} /></a>
+                <a href="/dashboard" className="footer-social-link" aria-label="Panel privado" title="Panel privado"><Lock size={18} /></a>
               </div>
             </div>
           </div>
