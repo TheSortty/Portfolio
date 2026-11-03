@@ -47,6 +47,7 @@ import {
 } from './format';
 import { CloudVault, GrassBlock, PcTower, Router } from './art';
 import { NotifyControl } from './notify';
+import { ServerControls } from './console';
 import './dashboard.css';
 
 const REFRESH_MS = 30_000;
@@ -306,7 +307,7 @@ const GAME_STATE: Record<GameServer['state'], { label: string; tone: Tone }> = {
   unknown: { label: 'Sin datos', tone: 'muted' },
 };
 
-function GamesTile({ data }: { data: GameServers | { error: string } }) {
+function GamesTile({ data, onChanged }: { data: GameServers | { error: string }; onChanged: () => void }) {
   const servers = !isError(data) && data.configured ? data.servers : [];
   const running = servers.filter((s) => s.state === 'running').length;
   return (
@@ -356,6 +357,7 @@ function GamesTile({ data }: { data: GameServers | { error: string } }) {
                     {memPct != null && <div style={{ marginTop: 6 }}><Bar value={memPct} tone="ok" accent /></div>}
                   </div>
                 )}
+                {s.state !== 'suspended' && s.state !== 'installing' && <ServerControls server={s} onChanged={onChanged} />}
               </article>
             );
           })}
@@ -709,7 +711,7 @@ export default function Dashboard({ fontClassName = '' }: { fontClassName?: stri
                 <DisksTile node={node} />
               </>
             )}
-            <GamesTile data={state.data.gameServers} />
+            <GamesTile data={state.data.gameServers} onChanged={load} />
             <ServicesTile services={state.data.services} cert={state.data.originCert} now={now} />
             <BackupsTile data={state.data.backups} now={now} />
           </div>

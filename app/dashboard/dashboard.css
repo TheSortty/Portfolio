@@ -409,7 +409,7 @@
   min-width: 0;
 }
 .d-game-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-.d-game-art { width: 56px; height: auto; }
+.d-game-art { width: 56px; height: auto; flex-shrink: 0; }
 .d-game.d-is-off .d-game-art { filter: grayscale(1); opacity: 0.55; }
 .d-game-name { font-weight: 600; overflow-wrap: anywhere; }
 .d-game-meta { font-size: 0.8125rem; color: var(--d-text-2); }
@@ -491,3 +491,92 @@
 .d-text-btn.is-primary { background: var(--d-accent); color: var(--d-glass-solid); }
 .d-text-btn.is-primary:hover { color: var(--d-glass-solid); filter: brightness(1.05); }
 .d-text-btn:disabled { opacity: 0.6; cursor: default; }
+
+/* ---------- control de servidores y consola ---------- */
+
+.d-server-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: auto; padding-top: 4px; }
+.d-power-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.d-text-btn.is-confirm { background: color-mix(in oklab, var(--d-crit) 18%, transparent); color: var(--d-crit); }
+.d-power-error { flex-basis: 100%; font-size: 0.8125rem; color: var(--d-crit); }
+.d-power-note { flex-basis: 100%; font-size: 0.8125rem; color: var(--d-text-2); }
+
+.d-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--d-pill);
+  color: var(--d-text-2);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.d-icon-btn:hover { color: var(--d-text); }
+.d-icon-btn svg { width: 18px; height: 18px; }
+
+.d-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.d-console {
+  width: min(56rem, calc(100vw - 32px));
+  height: min(44rem, calc(100dvh - 32px));
+  margin: auto;
+  padding: 18px;
+  border: 1px solid var(--d-glass-line);
+  border-radius: 22px;
+  background: var(--d-glass-solid);
+  color: var(--d-text);
+  font-family: var(--d-font-sans), system-ui, sans-serif;
+  font-size: 15px;
+  flex-direction: column;
+  gap: 12px;
+}
+.d-console[open] { display: flex; }
+.d-console::backdrop { background: rgb(0 0 0 / 0.55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+@media (max-width: 640px) {
+  /* En el celular ocupa toda la pantalla, respetando la barra de estado y el borde inferior. */
+  .d-console {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+    border: 0;
+    padding: max(14px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) max(14px, env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px));
+  }
+}
+.d-console-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.d-console-head h2 { font-size: 1.125rem; font-weight: 600; }
+.d-console-head .d-tile-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 4px; }
+.d-console-out {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 12px 14px;
+  overflow: auto;
+  border-radius: 14px;
+  background: #0b0c0e;
+  color: #d9dde2;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  -webkit-overflow-scrolling: touch;
+}
+.d-console-problem { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 0.875rem; color: var(--d-warn); }
+.d-console-input { display: flex; gap: 8px; }
+.d-console-input input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--d-glass-line);
+  border-radius: 999px;
+  background: var(--d-pill);
+  color: var(--d-text);
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 16px; /* 16 px evita que el iPhone haga zoom al escribir */
+}
+.d-console-input input::placeholder { color: var(--d-text-3); font-family: var(--d-font-sans), system-ui, sans-serif; }
+.d-console-input .d-text-btn { min-height: 44px; min-width: 44px; justify-content: center; }
