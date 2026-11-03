@@ -1,11 +1,26 @@
 import type { Metadata, Viewport } from 'next';
-import { IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 import Dashboard from './dashboard';
 
 // Tipografías propias del dashboard: muy legibles en tamaños chicos y con
 // números de ancho fijo, para que las cifras no "bailen" al actualizarse.
-const plexSans = IBM_Plex_Sans({ weight: ['400', '500', '600'], subsets: ['latin'], variable: '--d-font-sans' });
-const plexMono = IBM_Plex_Mono({ weight: ['400', '500'], subsets: ['latin'], variable: '--d-font-mono' });
+// Salen de los paquetes de @fontsource y no de Google Fonts: en el build de
+// Cloudflare, Google a veces responde sin los archivos y el deploy falla.
+const plexSans = localFont({
+  src: [
+    { path: '../../node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2', weight: '400' },
+    { path: '../../node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-500-normal.woff2', weight: '500' },
+    { path: '../../node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-600-normal.woff2', weight: '600' },
+  ],
+  variable: '--d-font-sans',
+});
+const plexMono = localFont({
+  src: [
+    { path: '../../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2', weight: '400' },
+    { path: '../../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2', weight: '500' },
+  ],
+  variable: '--d-font-mono',
+});
 
 // Página privada: Cloudflare Access la protege antes de que llegue al Worker,
 // y /api/dashboard vuelve a verificar la sesión antes de devolver datos.
