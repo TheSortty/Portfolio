@@ -22,7 +22,7 @@ import {
   Leaf,
   Lock
 } from 'lucide-react';
-import { motion, animate, stagger } from 'motion/react';
+import { motion } from 'motion/react';
 
 const translations = {
   en: {
@@ -155,11 +155,7 @@ const translations = {
       title: 'Contact',
       getInTouch: 'Get In Touch',
       desc: "Although I'm not currently looking for any new opportunities, my inbox is always open. Whether you have a question or just want to say hi, I'll try my best to get back to you!",
-      sayHello: 'Say Hello',
-      name: 'Name',
-      email: 'Email',
-      message: 'Message',
-      send: 'Send Message'
+      sayHello: 'Say Hello'
     },
     footer: {
       rights: 'All rights reserved.',
@@ -296,11 +292,7 @@ const translations = {
       title: 'Contacto',
       getInTouch: 'Ponte en contacto',
       desc: "Aunque actualmente no estoy buscando nuevas oportunidades, mi bandeja de entrada siempre está abierta. Ya sea que tengas una pregunta o simplemente quieras saludar, ¡haré todo lo posible para responderte!",
-      sayHello: 'Di Hola',
-      name: 'Nombre',
-      email: 'Correo',
-      message: 'Mensaje',
-      send: 'Enviar Mensaje'
+      sayHello: 'Di Hola'
     },
     footer: {
       rights: 'Todos los derechos reservados.',
@@ -309,39 +301,23 @@ const translations = {
   }
 };
 
+// Valores fijos (no aleatorios) para que el servidor y el navegador dibujen
+// lo mismo; con Math.random() React marcaba un error de hidratación.
 const initialParticles = [...Array(10)].map((_, i) => ({
   id: i,
-  left: Math.random() * 100,
-  delay: Math.random() * 5,
-  duration: 10 + Math.random() * 10,
-  text: ['{ }', '</>', '();', '=>'][Math.floor(Math.random() * 4)]
+  left: (i * 37 + 11) % 100,
+  delay: (i * 1.3) % 5,
+  duration: 10 + ((i * 7) % 10),
+  text: ['{ }', '</>', '();', '=>'][(i * 3) % 4]
 }));
 
 export default function Portfolio() {
-  const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(0);
   const [theme, setTheme] = useState('dark');
   const [lang, setLang] = useState<'en' | 'es'>('es');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const t = translations[lang];
-
-  useEffect(() => {
-    // Simulate loading
-    const interval = setInterval(() => {
-      setProgress(p => {
-        if (p >= 100) {
-          clearInterval(interval);
-          setTimeout(() => setLoading(false), 500);
-          return 100;
-        }
-        return p + Math.floor(Math.random() * 15) + 5;
-      });
-    }, 200);
-
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -356,60 +332,12 @@ export default function Portfolio() {
   }, [theme]);
 
   useEffect(() => {
-    if (!loading) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-          }
-        });
-      }, { threshold: 0.1 });
-
-      document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-
-      return () => observer.disconnect();
-    }
-  }, [loading]);
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const toggleTheme = () => {
     setTheme(t => t === 'dark' ? 'light' : 'dark');
   };
-
-  useEffect(() => {
-    if (!loading) {
-      animate('.hero-greeting, .hero-name, .hero-title, .hero-description, .hero-buttons, .hero-social', 
-        { y: [50, 0], opacity: [0, 1] },
-        { delay: stagger(0.1), duration: 1, ease: 'easeOut' }
-      );
-
-      animate('.hero-image-container', 
-        { scale: [0.8, 1], opacity: [0, 1] },
-        { duration: 1.5, delay: 0.5, type: 'spring', bounce: 0.4 }
-      );
-    }
-  }, [loading]);
-
-  if (loading) {
-    return (
-      <div className="loader-screen">
-        <div className="loader-content">
-          <div className="loader-code-text">
-            <span className="code-line" data-line="1">import &#123; Portfolio &#125; from &apos;./developer&apos;;</span>
-            <span className="code-line" data-line="2">const dev = new Portfolio();</span>
-            <span className="code-line" data-line="3">await dev.initialize();</span>
-            <span className="code-line" data-line="4">dev.render();</span>
-          </div>
-          <div className="loader-spinner-wrapper">
-            <div className="loader-spinner"></div>
-          </div>
-          <div className="loader-progress-wrapper">
-            <div className="loader-progress-bar" style={{ width: `${progress}%` }}></div>
-          </div>
-          <div className="loader-percentage">{progress}%</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <main className="min-h-screen">
@@ -522,13 +450,13 @@ export default function Portfolio() {
               </div>
               
               <div className="hero-social">
-                <a href="https://github.com/thesortty" target="_blank" rel="noopener noreferrer" className="social-icon">
+                <a href="https://github.com/TheSortty" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="GitHub">
                   <Github size={24} />
                 </a>
-                <a href="https://linkedin.com/in/thesortty" target="_blank" rel="noopener noreferrer" className="social-icon">
+                <a href="https://www.linkedin.com/in/gonzalo-murguia-5135b23b4/" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="LinkedIn">
                   <Linkedin size={24} />
                 </a>
-                <a href="https://wa.me/5492612407277?text=Hola%20Gonzalo!%20Vengo%20de%20tu%20portfolio%20web%20y%20me%20gustar%C3%ADa%20ponerme%20en%20contacto%20contigo." target="_blank" rel="noopener noreferrer" className="social-icon">
+                <a href="https://wa.me/5492612407277?text=Hola%20Gonzalo!%20Vengo%20de%20tu%20portfolio%20web%20y%20me%20gustar%C3%ADa%20ponerme%20en%20contacto%20contigo." target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="WhatsApp">
                   <MessageCircle size={24} />
                 </a>
               </div>
@@ -964,29 +892,23 @@ export default function Portfolio() {
                     <a href="https://www.linkedin.com/in/gonzalo-murguia-5135b23b4/" target="_blank" rel="noopener noreferrer" className="contact-value">linkedin.com/in/gonzalo-murguia</a>
                   </div>
                 </motion.div>
+                <motion.div 
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="contact-item"
+                >
+                  <div className="contact-icon">
+                    <MessageCircle size={24} />
+                  </div>
+                  <div className="contact-details">
+                    <span className="contact-label">WhatsApp</span>
+                    <a href="https://wa.me/5492612407277?text=Hola%20Gonzalo!%20Vengo%20de%20tu%20portfolio%20web%20y%20me%20gustar%C3%ADa%20ponerme%20en%20contacto%20contigo." target="_blank" rel="noopener noreferrer" className="contact-value">+54 9 261 240-7277</a>
+                  </div>
+                </motion.div>
               </div>
               
-              <motion.form 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="contact-form" 
-                onSubmit={(e) => e.preventDefault()}
-              >
-                <div className="form-group">
-                  <input type="text" className="form-input" placeholder={t.contact.name} required />
-                </div>
-                <div className="form-group">
-                  <input type="email" className="form-input" placeholder={t.contact.email} required />
-                </div>
-                <div className="form-group">
-                  <textarea className="form-input form-textarea" placeholder={t.contact.message} required></textarea>
-                </div>
-                <button type="submit" className="btn btn-primary btn-submit">
-                  {t.contact.send} <ChevronRight size={18} />
-                </button>
-              </motion.form>
             </div>
           </div>
         </section>

@@ -94,100 +94,6 @@ img {
     height: auto;
 }
 
-.loader-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--bg-darker);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000;
-    transition: opacity 0.5s, visibility 0.5s;
-}
-
-.loader-screen.hidden {
-    opacity: 0;
-    visibility: hidden;
-}
-
-.loader-content {
-    text-align: center;
-}
-
-.loader-code-text {
-    font-family: var(--font-code);
-    font-size: 1.2rem;
-    color: var(--primary);
-    margin-bottom: 2rem;
-}
-
-.code-line {
-    display: block;
-    margin: 0.5rem 0;
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeInUp 0.5s ease forwards;
-}
-
-.code-line[data-line="1"] { animation-delay: 0.1s; }
-.code-line[data-line="2"] { animation-delay: 0.3s; }
-.code-line[data-line="3"] { animation-delay: 0.5s; }
-.code-line[data-line="4"] { animation-delay: 0.7s; }
-
-@keyframes fadeInUp {
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.loader-spinner-wrapper {
-    margin: 2rem 0;
-}
-
-.loader-spinner {
-    width: 60px;
-    height: 60px;
-    border: 3px solid var(--border);
-    border-top-color: var(--primary);
-    border-right-color: var(--cyan);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.loader-progress-wrapper {
-    width: 200px;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    margin: 2rem auto;
-    overflow: hidden;
-}
-
-.loader-progress-bar {
-    height: 100%;
-    background: var(--gradient-1);
-    width: 0%;
-    animation: progress 2s ease forwards;
-    box-shadow: 0 0 10px var(--primary);
-}
-
-@keyframes progress {
-    to { width: 100%; }
-}
-
-.loader-percentage {
-    font-family: var(--font-code);
-    color: var(--primary);
-    font-size: 1rem;
-    margin-top: 1rem;
-}
-
 .main-header {
     position: fixed;
     top: 0;
@@ -877,14 +783,6 @@ img {
     line-height: 1.8;
 }
 
-.code-line {
-    margin: 0.5rem 0;
-}
-
-.code-line.indent {
-    padding-inline-start: 2rem;
-}
-
 .code-keyword { color: var(--purple); }
 .code-variable { color: var(--cyan); }
 .code-operator { color: var(--primary); }
@@ -1225,14 +1123,12 @@ img {
 }
 
 .contact-content {
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: 4rem;
+    display: block;
 }
 
 .contact-info {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
     gap: 2rem;
 }
 
@@ -1291,43 +1187,6 @@ img {
 
 .contact-value:hover {
     color: var(--cyan);
-}
-
-.contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-.form-group {
-    position: relative;
-}
-
-.form-input {
-    width: 100%;
-    padding: 1rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    color: var(--text-primary);
-    font-family: var(--font-primary);
-    font-size: 1rem;
-    transition: all var(--transition);
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(255,107,157,0.1);
-}
-
-.form-textarea {
-    resize: vertical;
-    min-height: 150px;
-}
-
-.btn-submit {
-    align-self: flex-start;
 }
 
 .main-footer {
@@ -1443,15 +1302,10 @@ img {
     transform: translateY(-2px);
 }
 
+/* Las secciones se ven desde el inicio: ocultarlas hasta hacer scroll dejaba
+   en blanco las que se saltaban al navegar desde el menú. */
 .fade-in {
-    opacity: 0;
-    transform: translateY(50px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.fade-in.visible {
     opacity: 1;
-    transform: translateY(0);
 }
 
 [dir="rtl"] .timeline {
@@ -1724,14 +1578,9 @@ img {
         margin: 0 auto;
     }
     
-    .contact-form {
-        gap: 1.5rem;
-    }
+
     
-    .form-input {
-        padding: 0.9rem;
-        font-size: 0.95rem;
-    }
+
     
     .footer-container {
         padding: 0 1rem;
@@ -1972,10 +1821,7 @@ img {
         font-size: 0.95rem;
     }
     
-    .form-input {
-        padding: 0.8rem;
-        font-size: 0.9rem;
-    }
+
     
     .btn {
         padding: 0.8rem 1.2rem;
@@ -2008,18 +1854,11 @@ img {
         font-size: 0.9rem;
     }
     
-    .loader-code-text {
-        font-size: 1rem;
-    }
+
     
-    .loader-spinner {
-        width: 50px;
-        height: 50px;
-    }
+
     
-    .loader-progress-wrapper {
-        width: 180px;
-    }
+
 }
 
 @media (max-width: 360px) {
