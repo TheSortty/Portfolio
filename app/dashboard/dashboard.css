@@ -188,7 +188,9 @@
     "game game"
     "disk disk"
     "svc  svc"
-    "back back";
+    "back back"
+    "maint maint"
+    "hist hist";
   gap: 12px;
 }
 @media (min-width: 720px) {
@@ -200,7 +202,9 @@
       "temp net"
       "game game"
       "disk disk"
-      "svc  back";
+      "svc  back"
+      "maint maint"
+      "hist hist";
   }
 }
 @media (min-width: 1180px) {
@@ -208,8 +212,9 @@
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:
       "hero node node temp"
-      "game game net  back"
-      "disk disk svc  back";
+      "game game game back"
+      "disk disk svc  back"
+      "hist hist net  maint";
     gap: 18px;
   }
 }
@@ -221,6 +226,8 @@
 .a-game { grid-area: game; }
 .a-svc { grid-area: svc; }
 .a-back { grid-area: back; }
+.a-maint { grid-area: maint; }
+.a-hist { grid-area: hist; }
 
 .d-tile {
   position: relative;
@@ -397,7 +404,7 @@
 
 /* ---------- servidores de juego ---------- */
 
-.d-games { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr)); gap: 12px; }
+.d-games { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 12px; }
 .d-game {
   display: flex;
   flex-direction: column;
@@ -580,3 +587,63 @@
 }
 .d-console-input input::placeholder { color: var(--d-text-3); font-family: var(--d-font-sans), system-ui, sans-serif; }
 .d-console-input .d-text-btn { min-height: 44px; min-width: 44px; justify-content: center; }
+
+/* ---------- jugadores, dirección y comandos rápidos ---------- */
+
+.d-players { font-size: 0.8125rem; color: var(--d-text-2); margin-top: 4px; overflow-wrap: anywhere; }
+.d-players b { color: var(--d-text); font-weight: 600; }
+.d-address {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px dashed var(--d-glass-line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--d-text);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  align-self: flex-start;
+}
+.d-address span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d-address svg { width: 15px; height: 15px; color: var(--d-text-3); flex-shrink: 0; }
+.d-address:hover { border-color: var(--d-text-3); }
+.d-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---------- mantenimiento ---------- */
+
+.d-maint-list { display: flex; flex-direction: column; }
+.d-maint-list li { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; }
+.d-maint-list li + li { border-top: 1px solid var(--d-glass-line); }
+.d-maint-list li:first-child { padding-top: 0; }
+.d-maint-list li > svg { width: 18px; height: 18px; margin-top: 2px; color: var(--tone); flex-shrink: 0; }
+.d-maint-name { font-weight: 600; font-size: 0.9375rem; overflow-wrap: anywhere; }
+.d-maint-flag { margin-left: 4px; font-size: 0.8125rem; font-weight: 600; color: var(--tone); }
+.d-maint-meta { font-size: 0.8125rem; color: var(--d-text-2); }
+.d-code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.8125rem; padding: 1px 6px; border-radius: 6px; background: var(--d-pill); }
+
+/* ---------- historial de caídas ---------- */
+
+.d-hist-rows { display: flex; flex-direction: column; gap: 12px; }
+.d-hist-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+@media (min-width: 720px) { .d-hist-row { grid-template-columns: 11rem minmax(0, 1fr); align-items: center; gap: 16px; } }
+.d-hist-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-weight: 600; font-size: 0.9375rem; }
+.d-hist-count { font-size: 0.75rem; font-weight: 400; color: var(--d-text-2); }
+.d-hist-days { display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); gap: 2px; }
+.d-hist-day { height: 20px; border-radius: 3px; background: var(--d-track); }
+.d-hist-day.l1 { background: color-mix(in oklab, var(--d-crit) 40%, var(--d-track)); }
+.d-hist-day.l2 { background: color-mix(in oklab, var(--d-crit) 70%, var(--d-track)); }
+.d-hist-day.l3 { background: var(--d-crit); }
+.d-hist-axis { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--d-text-3); }
+@media (min-width: 720px) { .d-hist-axis { margin-left: calc(11rem + 16px); } }
+.d-hist-list { display: flex; flex-direction: column; border-top: 1px solid var(--d-glass-line); }
+.d-hist-list li { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 16px; padding: 9px 0; font-size: 0.875rem; }
+.d-hist-list li + li { border-top: 1px solid var(--d-glass-line); }
+@media (min-width: 720px) { .d-hist-list li { grid-template-columns: 11rem minmax(0, 1fr); } }
+.d-hist-when { color: var(--d-text-2); }
+.d-hist-what b { font-weight: 600; }
+.d-hist-reason { display: block; color: var(--d-text-2); font-size: 0.8125rem; }
+@media (forced-colors: active) { .d-hist-day.l1, .d-hist-day.l2, .d-hist-day.l3 { background: CanvasText; } }

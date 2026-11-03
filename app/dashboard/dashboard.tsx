@@ -47,10 +47,33 @@ import {
 } from './format';
 import { CloudVault, GrassBlock, PcTower, Router } from './art';
 import { NotifyControl } from './notify';
-import { ServerControls } from './console';
+import { consoleIsOpen, CopyAddress, ServerControls } from './console';
+import { HistoryTile, MaintenanceTile } from './upkeep';
 import './dashboard.css';
 
 const REFRESH_MS = 30_000;
+const VERSION_CHECK_MS = 5 * 60_000;
+const BUILD_ID = process.env.DASHBOARD_BUILD_ID;
+
+// Última respuesta guardada en este dispositivo, para mostrarla al instante al
+// abrir la app mientras llega la nueva. Solo estado del servidor, nunca claves.
+const CACHE_KEY = 'littlemc:overview';
+const CACHE_MAX_AGE = 24 * 3_600_000;
+
+function readCache(): { data: Overview; fetchedAt: number } | null {
+  try {
+    const c = JSON.parse(localStorage.getItem(CACHE_KEY) ?? 'null');
+    return c && Date.now() - c.fetchedAt < CACHE_MAX_AGE ? c : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(data: Overview, fetchedAt: number) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ data, fetchedAt }));
+  } catch {}
+}
 const TZ = 'America/Argentina/Buenos_Aires';
 const OWNER = 'Gonzalo';
 
@@ -348,7 +371,18 @@ function GamesTile({ data, onChanged }: { data: GameServers | { error: string };
                     {s.port ? `Puerto ${s.port}` : s.node}
                     {s.state === 'running' && `, hace ${formatDuration((s.uptimeMs ?? 0) / 1000)}`}
                   </p>
+                  {s.players && (
+                    <p className="d-players num">
+                      <b>{s.players.online}</b>{s.players.max ? ` de ${s.players.max}` : ''} {s.players.online === 1 ? 'jugador' : 'jugadores'}
+                      {s.players.names.length > 0 && <span>: {s.players.names.join(', ')}</span>}
+                    </p>
+                  )}
                 </div>
+                {s.address && <CopyAddress address={s.address} />}
+                {(() => {
+                  const next = (s.schedules ?? []).filter((x) => x.active && x.nextRunAt).sort((a, b) => new Date(a.nextRunAt!).getTime() - new Date(b.nextRunAt!).getTime())[0];
+                  return next ? <p className="d-game-meta">Próxima tarea: {next.name}, {formatRelative(next.nextRunAt, Date.now())}</p> : null;
+                })()}
                 {s.state === 'running' && (
                   <div>
                     <p className="d-game-meta num">
@@ -362,6 +396,11 @@ function GamesTile({ data, onChanged }: { data: GameServers | { error: string };
             );
           })}
         </div>
+      )}
+      {servers.some((s) => s.kind === 'minecraft' && s.backups?.limit === 0) && (
+        <p className="d-tile-sub">
+          Para hacer backups de los mundos desde acá, subí el límite de backups de cada servidor en Pterodactyl: Admin, Servers, el servidor, Build Configuration.
+        </p>
       )}
     </Tile>
   );
@@ -508,6 +547,10 @@ function findProblems(data: Overview, now: number): { text: string; tone: Tone }
     if (st.tone === 'crit') problems.push({ text: 'El último backup falló', tone: 'crit' });
     if (st.tone === 'warn') problems.push({ text: 'El backup diario está atrasado', tone: 'warn' });
   }
+  if (!isError(data.host) && data.host.configured) {
+    for (const d of data.host.disks) if (d.healthy === false) problems.push({ text: `El disco ${d.model ?? d.device} reporta fallas`, tone: 'crit' });
+    if (data.host.reboot.required) problems.push({ text: 'Hace falta reiniciar la PC por una actualización', tone: 'warn' });
+  }
   if (!isError(data.originCert) && data.originCert.configured && !('error' in data.originCert)) {
     const days = data.originCert.daysRemaining;
     if (days != null && days <= LIMITS.certWarnDays) problems.push({ text: `El certificado vence en ${days} días`, tone: certTone(days) });
@@ -522,12 +565,15 @@ function greeting(now: number) {
   return `${hello}, ${OWNER}. Hoy es ${date}.`;
 }
 
-function Hero({ nodes, problems, error, offlineSince, generatedAt, now }: {
+function Hero({ nodes, problems, error, offlineSince, generatedAt, fetchedAt, refreshing, updateReady, now }: {
   nodes: ServerNode[];
   problems: { text: string; tone: Tone }[];
   error?: string;
   offlineSince?: number;
   generatedAt: string;
+  fetchedAt: number;
+  refreshing: boolean;
+  updateReady: boolean;
   now: number;
 }) {
   const shown = problems.slice(0, 4);
@@ -541,6 +587,18 @@ function Hero({ nodes, problems, error, offlineSince, generatedAt, now }: {
     <div className="d-hero a-hero">
       <p className="d-hero-greet">{greeting(now)}</p>
       <h1 className="d-hero-title">{title}</h1>
+      {!error && (
+        <p className="d-hero-meta" aria-live="polite">
+          {refreshing ? 'Actualizando…' : `Actualizado ${formatRelative(new Date(fetchedAt).toISOString(), now)}`}
+        </p>
+      )}
+      {updateReady && (
+        <div className="d-notify d-glass t-accent" role="status">
+          <RefreshCw aria-hidden />
+          <p>Hay una versión nueva del panel. Se va a cargar cuando cierres la consola.</p>
+          <button type="button" className="d-text-btn" onClick={() => window.location.reload()}>Actualizar ahora</button>
+        </div>
+      )}
       {error ? (
         <p className="d-hero-meta">
           {offlineSince ? `Sin respuesta desde ${formatRelative(new Date(offlineSince).toISOString(), now)}. ` : `${error} `}
@@ -597,7 +655,9 @@ export default function Dashboard({ fontClassName = '' }: { fontClassName?: stri
       }
       const body = await res.json().catch(() => ({ error: 'Respuesta inválida del servidor.' }));
       if (res.ok) {
-        setState({ kind: 'ready', data: body as Overview, fetchedAt: Date.now() });
+        const fetchedAt = Date.now();
+        setState({ kind: 'ready', data: body as Overview, fetchedAt });
+        writeCache(body as Overview, fetchedAt);
       } else {
         const error = (body as { error?: string }).error ?? `Error ${res.status}`;
         const offline = Boolean((body as { offline?: boolean }).offline);
@@ -618,6 +678,36 @@ export default function Dashboard({ fontClassName = '' }: { fontClassName?: stri
       setRefreshing(false);
       setNow(Date.now());
     }
+  }, []);
+
+  // Al abrir, muestra lo último guardado mientras pide los datos nuevos.
+  useEffect(() => {
+    const cached = readCache();
+    if (cached) setState((prev) => (prev.kind === 'loading' ? { kind: 'ready', ...cached } : prev));
+  }, []);
+
+  // Versión nueva publicada: al volver a la app se recarga sola, salvo que
+  // haya una consola abierta; en ese caso avisa y espera.
+  const [updateReady, setUpdateReady] = useState(false);
+  useEffect(() => {
+    let last = 0;
+    const check = async () => {
+      if (document.hidden || Date.now() - last < 60_000) return;
+      last = Date.now();
+      try {
+        const { build } = await (await fetch('/api/version', { cache: 'no-store' })).json();
+        if (!build || !BUILD_ID || build === BUILD_ID) return;
+        if (consoleIsOpen()) setUpdateReady(true);
+        else window.location.reload();
+      } catch {}
+    };
+    check();
+    const id = setInterval(check, VERSION_CHECK_MS);
+    document.addEventListener('visibilitychange', check);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', check);
+    };
   }, []);
 
   useEffect(() => {
@@ -697,6 +787,9 @@ export default function Dashboard({ fontClassName = '' }: { fontClassName?: stri
               error={state.error}
               offlineSince={state.offlineSince}
               generatedAt={state.data.generatedAt}
+              fetchedAt={state.fetchedAt}
+              refreshing={refreshing}
+              updateReady={updateReady}
               now={now}
             />
             {isError(state.data.nodes) ? (
@@ -714,6 +807,8 @@ export default function Dashboard({ fontClassName = '' }: { fontClassName?: stri
             <GamesTile data={state.data.gameServers} onChanged={load} />
             <ServicesTile services={state.data.services} cert={state.data.originCert} now={now} />
             <BackupsTile data={state.data.backups} now={now} />
+            <MaintenanceTile data={state.data.host} now={now} />
+            <HistoryTile data={state.data.history} now={now} />
           </div>
         )}
 

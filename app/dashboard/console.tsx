@@ -1,9 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { LoaderCircle, Play, Power, RotateCw, SendHorizontal, Square, SquareTerminal, X } from 'lucide-react';
+import { Archive, Check, Copy, LoaderCircle, Play, Power, RotateCw, SendHorizontal, Square, SquareTerminal, X } from 'lucide-react';
 import type { GameServer } from '@/lib/dashboard/types';
-import { formatBytes } from './format';
+import { formatBytes, formatRelative } from './format';
 
 // Control de un servidor de Pterodactyl desde el panel: encender, apagar,
 // reiniciar y una consola en vivo conectada directo a Wings (como el panel
@@ -87,6 +87,10 @@ function PowerButtons({ server, state, onDone }: { server: GameServer; state: st
     </div>
   );
 }
+
+// Cuántas consolas hay abiertas: el panel no se recarga solo mientras haya una.
+let openConsoles = 0;
+export const consoleIsOpen = () => openConsoles > 0;
 
 // Wings manda la salida con colores ANSI; acá se muestran en texto plano.
 const stripAnsi = (s: string) => s.replace(/\u001b\[[0-9;?]*[A-Za-z]/g, '').replace(/\r/g, '');
@@ -174,9 +178,13 @@ function ConsoleDialog({ server, onClose, onPowerDone }: { server: GameServer; o
   }, [server.id, append]);
 
   useEffect(() => {
+    openConsoles++;
     dialog.current?.showModal();
     connect();
-    return () => ws.current?.close();
+    return () => {
+      openConsoles--;
+      ws.current?.close();
+    };
   }, [connect]);
 
   // Baja sola mientras estás al final; si subiste a leer, no te mueve.
@@ -201,6 +209,17 @@ function ConsoleDialog({ server, onClose, onPowerDone }: { server: GameServer; o
     const next = Math.max(-1, Math.min(history.current.length - 1, historyAt.current + (e.key === 'ArrowUp' ? 1 : -1)));
     historyAt.current = next;
     setCommand(next === -1 ? '' : history.current[next]);
+  };
+
+  const input = useRef<HTMLInputElement>(null);
+  const quick = (cmd: string) => {
+    if (ws.current?.readyState !== WebSocket.OPEN) return;
+    ws.current.send(JSON.stringify({ event: 'send command', args: [cmd] }));
+    stick.current = true;
+  };
+  const announce = () => {
+    setCommand('say ');
+    input.current?.focus();
   };
 
   const stateLabel: Record<string, string> = { running: 'Encendido', starting: 'Iniciando', stopping: 'Apagando', offline: 'Apagado' };
@@ -236,6 +255,14 @@ function ConsoleDialog({ server, onClose, onPowerDone }: { server: GameServer; o
         {conn === 'connecting' && lines.length === 0 ? 'Conectando con la consola…' : lines.join('\n')}
       </pre>
 
+      {server.kind === 'minecraft' && conn === 'open' && live.state === 'running' && (
+        <div className="d-quick" aria-label="Comandos rápidos">
+          <button type="button" className="d-text-btn" onClick={() => quick('list')}>Ver jugadores</button>
+          <button type="button" className="d-text-btn" onClick={() => quick('save-all')}>Guardar mundo</button>
+          <button type="button" className="d-text-btn" onClick={announce}>Avisar a todos</button>
+        </div>
+      )}
+
       {problem && (
         <div className="d-console-problem">
           <p>{problem}</p>
@@ -246,6 +273,7 @@ function ConsoleDialog({ server, onClose, onPowerDone }: { server: GameServer; o
       <form className="d-console-input" onSubmit={submit}>
         <label htmlFor="console-cmd" className="d-sr">Comando</label>
         <input
+          ref={input}
           id="console-cmd"
           value={command}
           onChange={(e) => setCommand(e.target.value)}
@@ -266,10 +294,70 @@ function ConsoleDialog({ server, onClose, onPowerDone }: { server: GameServer; o
   );
 }
 
+/** Copia la dirección para pasársela a otros jugadores. */
+export function CopyAddress({ address }: { address: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      window.prompt('Copiá la dirección:', address);
+    }
+  };
+  return (
+    <button type="button" className="d-address" onClick={copy} aria-label={`Copiar dirección ${address}`}>
+      <span className="num">{address}</span>
+      {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
+      <span className="d-sr" aria-live="polite">{copied ? 'Copiada' : ''}</span>
+    </button>
+  );
+}
+
+function BackupButton({ server, onDone }: { server: GameServer; onDone: (msg: string) => void }) {
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!confirm) return;
+    const t = setTimeout(() => setConfirm(false), 4000);
+    return () => clearTimeout(t);
+  }, [confirm]);
+  const run = async () => {
+    if (!confirm) return setConfirm(true);
+    setConfirm(false);
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/dashboard/servers/${server.id}/backup`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}', redirect: 'manual' });
+      if (res.type === 'opaqueredirect') throw new Error('Tu sesión venció. Recargá la página.');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? `Error ${res.status}`);
+      onDone('Backup en curso. Puede tardar unos minutos.');
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <button type="button" className={`d-text-btn ${confirm ? 'is-confirm' : ''}`} onClick={run} disabled={busy}>
+        {busy ? <LoaderCircle className="d-spin" aria-hidden /> : <Archive aria-hidden />}
+        {confirm ? '¿Hacer backup?' : 'Backup'}
+      </button>
+      {error && <p className="d-power-error">{error}</p>}
+    </>
+  );
+}
+
 /** Botones y consola de un servidor, para la tarjeta de servidores. */
 export function ServerControls({ server, onChanged }: { server: GameServer; onChanged: () => void }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const canBackup = Boolean(server.backups && server.backups.limit > 0);
+  const lastBackup = server.backups?.last;
 
   const done = (msg: string) => {
     setNote(msg);
@@ -285,6 +373,13 @@ export function ServerControls({ server, onChanged }: { server: GameServer; onCh
       <button type="button" className="d-text-btn" onClick={() => setOpen(true)}>
         <SquareTerminal aria-hidden /> Consola
       </button>
+      {canBackup && <BackupButton server={server} onDone={(m) => { setNote(m); setTimeout(onChanged, 20_000); }} />}
+      {canBackup && lastBackup && (
+        <p className="d-power-note">
+          Último backup {formatRelative(lastBackup.at, Date.now())}
+          {!lastBackup.done ? ' (en curso)' : lastBackup.ok ? `, ${formatBytes(lastBackup.bytes)}` : ' (falló)'}
+        </p>
+      )}
       {note && <p className="d-power-note" role="status">{note}</p>}
       {open && <ConsoleDialog server={server} onClose={() => setOpen(false)} onPowerDone={done} />}
     </div>

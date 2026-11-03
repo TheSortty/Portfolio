@@ -2,6 +2,11 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Identifica cada versión publicada: el panel instalado como app la compara
+  // con /api/version para saber cuándo recargarse.
+  env: {
+    DASHBOARD_BUILD_ID: process.env.WORKERS_CI_COMMIT_SHA || String(Date.now()),
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

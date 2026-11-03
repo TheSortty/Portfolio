@@ -94,7 +94,14 @@ export interface GameServer {
   id: string;
   name: string;
   node: string;
+  kind: 'minecraft' | 'other';
   port: number | null;
+  /** Dirección para conectarse, si está configurada en el gateway (GAME_ADDRESSES). */
+  address: string | null;
+  /** Solo Minecraft encendido: jugadores conectados (Server List Ping). */
+  players: { online: number; max: number | null; names: string[]; version: string | null } | null;
+  backups: { count: number; limit: number; last: { at: string; ok: boolean; done: boolean; bytes: number } | null } | null;
+  schedules: { name: string; active: boolean; nextRunAt: string | null; lastRunAt: string | null }[] | null;
   state: GameServerState;
   cpuPct: number | null;
   memBytes: number | null;
@@ -105,10 +112,46 @@ export interface GameServer {
 
 export type GameServers = { configured: false } | { configured: true; servers: GameServer[] };
 
+export interface Incident {
+  start: string;
+  end: string | null;
+  durationSec: number;
+  reason: string | null;
+}
+
+export interface History {
+  since: string;
+  monitors: { name: string; incidents: Incident[] }[];
+}
+
+export interface HostDisk {
+  device: string;
+  model: string | null;
+  healthy: boolean | null;
+  tempC: number | null;
+  powerOnHours: number | null;
+  lifeLeftPct: number | null;
+  reallocated: number | null;
+  pending: number | null;
+  uncorrectable: number | null;
+}
+
+export type HostInfo =
+  | { configured: false }
+  | {
+      configured: true;
+      generatedAt: string;
+      disks: HostDisk[];
+      updates: { count: number; security: number; names: string[] };
+      reboot: { required: boolean; runningKernel: string; latestKernel: string; packages: string[]; bootedAt: string };
+    };
+
 export interface Overview {
   generatedAt: string;
   nodes: ServerNode[] | SectionError;
   services: Service[] | SectionError;
+  history: History | SectionError;
+  host: HostInfo | SectionError;
   backups: Backups | SectionError;
   originCert: OriginCert | SectionError;
   gameServers: GameServers | SectionError;
