@@ -1,943 +1,270 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { 
-  Code2, 
-  Terminal, 
-  User, 
-  Briefcase, 
-  Mail, 
-  Github, 
-  Linkedin, 
-  Twitter,
-  Moon,
-  Sun,
-  Globe,
-  Menu,
-  ChevronRight,
-  Database,
-  Layout,
-  Server,
-  MessageCircle,
-  Leaf,
-  Lock
-} from 'lucide-react';
-import { motion } from 'motion/react';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowUpRight, Check, Download, Github, Linkedin, Lock, Mail, MessageCircle, Moon, Sun } from 'lucide-react';
+import { PcTower } from './dashboard/art';
+import { content, EMAIL, GITHUB, LINKEDIN, waLink, type Lang } from './content';
+import type { PublicStatus } from './api/status/route';
+import './site.css';
 
-const translations = {
-  en: {
-    nav: {
-      about: 'About',
-      skills: 'Skills',
-      experience: 'Experience',
-      projects: 'Projects',
-      services: 'Services',
-      contact: 'Contact'
-    },
-    hero: {
-      greeting: 'Hello, World! I am',
-      role: 'Fullstack Developer & IT Infrastructure Specialist',
-      description: 'UTN graduate with experience in process automation (n8n), VoIP architectures (Asterisk), and web development (TypeScript/FastAPI). Focused on scalable solutions that optimize technical operations and business performance.',
-      viewWork: 'View My Work',
-      contactMe: 'Contact Me',
-      downloadCV: 'Download CV'
-    },
-    about: {
-      title: 'About Me',
-      p1: "Hello! I'm Gonza (Gonzalo Murguia), a Fullstack Developer and IT Infrastructure Specialist. I'm passionate about creating comprehensive technological solutions, from web development to server and network management.",
-      p2: "Throughout my career, I've worked as a Freelance Technician, IT Administrator, and Software Engineer. I specialize in process automation, IP telephony modernization, and agile development. I always seek to optimize technical operations and business performance.",
-      stats: {
-        experience: 'Years Experience',
-        projects: 'Projects Completed',
-        clients: 'Happy Clients',
-        awards: 'Certifications'
-      }
-    },
-    skills: {
-      title: 'Skills',
-      frontend: 'Backend & Scripting',
-      backend: 'Infrastructure',
-      database: 'Communications & Tools'
-    },
-    experience: {
-      title: 'Experience',
-      present: 'Present',
-      fulltime: 'Full-time',
-      jobs: [
-        {
-          title: 'Technician & Freelance Developer',
-          company: 'Self-Employed / Summit S.A.',
-          desc: 'IT Technician since 2021 and Freelance Developer since September 2025, highlighting the "ideon" and "siendoHome" projects. Specialized in technological infrastructure management (networks, Linux, Windows) and comprehensive technical support.',
-          achievements: [
-            'Developed and deployed the siendoHome and ideon platforms',
-            'Managed Linux and Windows server infrastructure',
-            'Provided remote and on-site technical support'
-          ]
-        },
-        {
-          title: 'Software Engineer Intern',
-          company: 'Summit',
-          desc: 'Led the migration of VoIP infrastructure to PJSIP and optimized the Asterisk engine. Designed integration architectures between PBX and transcription APIs.',
-          achievements: [
-            'Eliminated critical failures and improved communication quality',
-            'Automated data processing flows using Python (FastAPI) and n8n'
-          ]
-        },
-        {
-          title: 'Software Engineer',
-          company: 'Insomnia Graphix',
-          desc: 'Optimized delivery times in frontend projects and applications using Scrum, highlighting leadership in the Simple Clean project.',
-          achievements: [
-            'Elevated application stability by fixing critical bugs',
-            'Ensured project scalability through technical documentation'
-          ]
-        }
-      ]
-    },
-    projects: {
-      title: 'Projects',
-      desc: 'A brief description of the project. It highlights the main features and the problem it solves. Built with modern web technologies.',
-      items: [
-        {
-          name: 'siendoHome',
-          url: 'https://siendohome.com',
-          desc: 'Web application developed to manage and optimize specific services. Built with a focus on scalability and performance.',
-          tags: ['TypeScript', 'Node.js', 'Linux'],
-          image: '/IMAGEN-SIENDOHOME.png'
-        },
-        {
-          name: 'ideon.ar',
-          url: 'https://ideon.ar',
-          desc: 'Comprehensive web platform providing technological solutions. Focuses on robust infrastructure and seamless user experience.',
-          tags: ['Web Development', 'Infrastructure', 'FastAPI'],
-          image: '/IMAGEN-IDEON.png'
-        }
-      ]
-    },
-    services: {
-      title: 'Services',
-      desc: 'Professional technical solutions for computer equipment and networks. Discounted promotional prices.',
-      categories: [
-        {
-          name: 'Base Support & Diagnostics',
-          items: [
-            { name: 'Diagnostics / Review', original: 16564, current: 10790 },
-            { name: 'Remote Connection x 1 HR', original: 13251, current: 8590 },
-            { name: 'Home Visit x 1 HR', original: 29816, current: 19390 },
-            { name: 'Emergency Home Visit', original: 57974, current: 37690 },
-            { name: 'Router / Access Point Configuration', original: 36441, current: 23690 }
-          ]
-        },
-        {
-          name: 'Software & Optimization',
-          items: [
-            { name: 'OS Format & Install w/o BackUp', original: 57974, current: 37690 },
-            { name: 'New Equipment Initialization', original: 49691, current: 32290 },
-            { name: 'Windows Startup Repair', original: 43762, current: 28490 },
-            { name: 'Software Cleaning & Malware Removal', original: 29816, current: 19390 },
-            { name: 'Drivers Installation', original: 19877, current: 12990 },
-            { name: 'Commercial / OpenSource Programs', original: 16564, current: 10790 }
-          ]
-        },
-        {
-          name: 'Hardware Maintenance',
-          items: [
-            { name: 'Physical Clean + Format + BackUp + SSD', original: 66169, current: 42990 },
-            { name: 'Basic PC Build from Scratch', original: 82820, current: 53890 },
-            { name: 'Deep Hardware Clean + Thermal Paste', original: 29816, current: 19390 },
-            { name: 'Screen or Flex Replacement (Notebooks)', original: 41411, current: 26990 },
-            { name: 'Keyboard Replacement (Notebooks)', original: 24846, current: 16190 }
-          ]
-        }
-      ]
-    },
-    contact: {
-      title: 'Contact',
-      getInTouch: 'Get In Touch',
-      desc: "Although I'm not currently looking for any new opportunities, my inbox is always open. Whether you have a question or just want to say hi, I'll try my best to get back to you!",
-      sayHello: 'Say Hello'
-    },
-    footer: {
-      rights: 'All rights reserved.',
-      builtBy: 'Designed & Built by'
-    }
-  },
-  es: {
-    nav: {
-      about: 'Sobre mí',
-      skills: 'Habilidades',
-      experience: 'Experiencia',
-      projects: 'Proyectos',
-      services: 'Servicios',
-      contact: 'Contacto'
-    },
-    hero: {
-      greeting: '¡Hola Mundo! Soy',
-      role: 'Desarrollador Fullstack & Especialista IT',
-      description: 'Graduado en la UTN con experiencia en automatización de procesos (n8n), arquitecturas VoIP (Asterisk) y desarrollo web (TypeScript/FastAPI). Enfocado en soluciones escalables que optimizan la operatividad técnica y el rendimiento del negocio.',
-      viewWork: 'Ver mi trabajo',
-      contactMe: 'Contáctame',
-      downloadCV: 'Descargar CV'
-    },
-    about: {
-      title: 'Sobre mí',
-      p1: "¡Hola! Soy Gonza (Gonzalo Murguia), un Desarrollador Fullstack y Especialista en Infraestructura IT. Me apasiona crear soluciones tecnológicas integrales, desde el desarrollo web hasta la gestión de servidores y redes.",
-      p2: "A lo largo de mi carrera, he trabajado como Técnico Freelance, Administrador IT y Software Engineer. Me especializo en automatización de procesos, modernización de telefonía IP y desarrollo ágil. Siempre busco optimizar la operatividad técnica y el rendimiento del negocio.",
-      stats: {
-        experience: 'Años de Experiencia',
-        projects: 'Proyectos Completados',
-        clients: 'Clientes Felices',
-        awards: 'Certificaciones'
-      }
-    },
-    skills: {
-      title: 'Habilidades',
-      frontend: 'Backend & Scripting',
-      backend: 'Infraestructura',
-      database: 'Comunicaciones y Herramientas'
-    },
-    experience: {
-      title: 'Experiencia',
-      present: 'Presente',
-      fulltime: 'Tiempo completo',
-      jobs: [
-        {
-          title: 'Técnico y Desarrollador Freelance',
-          company: 'Independiente / Summit S.A.',
-          desc: 'Técnico IT desde 2021 y Desarrollador Freelance desde Septiembre 2025, destacando los proyectos "ideon" y "siendoHome". Me especializo en infraestructura tecnológica (redes, Linux, Windows) y soporte técnico integral.',
-          achievements: [
-            'Desarrollo e implementación de las plataformas siendoHome e ideon',
-            'Gestión de infraestructura de servidores Linux y Windows',
-            'Soporte técnico integral remoto y presencial'
-          ]
-        },
-        {
-          title: 'Software Engineer Pasante',
-          company: 'Summit',
-          desc: 'Lideré la migración de infraestructura VoIP a PJSIP y la optimización del motor Asterisk. Diseñé la arquitectura de integración entre PBX y APIs de transcripción.',
-          achievements: [
-            'Eliminación de fallos críticos y mejora en la calidad de comunicaciones',
-            'Automatización de flujos de datos utilizando Python (FastAPI) y n8n'
-          ]
-        },
-        {
-          title: 'Software Engineer',
-          company: 'Insomnia Graphix',
-          desc: 'Optimicé los tiempos de entrega en proyectos frontend y aplicaciones mediante Scrum, destacando el liderazgo en el proyecto Simple Clean.',
-          achievements: [
-            'Elevé la estabilidad de las aplicaciones corrigiendo errores críticos',
-            'Aseguré la escalabilidad a través de documentación técnica'
-          ]
-        }
-      ]
-    },
-    projects: {
-      title: 'Proyectos',
-      desc: 'Una breve descripción del proyecto. Destaca las características principales y el problema que resuelve. Construido con tecnologías web modernas.',
-      items: [
-        {
-          name: 'siendoHome',
-          url: 'https://siendohome.com',
-          desc: 'Aplicación web desarrollada para gestionar y optimizar servicios específicos. Construida con un enfoque en escalabilidad y rendimiento.',
-          tags: ['TypeScript', 'Node.js', 'Linux'],
-          image: '/IMAGEN-SIENDOHOME.png'
-        },
-        {
-          name: 'ideon.ar',
-          url: 'https://ideon.ar',
-          desc: 'Plataforma web integral que proporciona soluciones tecnológicas. Se centra en una infraestructura robusta y una experiencia de usuario fluida.',
-          tags: ['Web Development', 'Infrastructure', 'FastAPI'],
-          image: '/IMAGEN-IDEON.png'
-        }
-      ]
-    },
-    services: {
-      title: 'Servicios',
-      desc: 'Soluciones técnicas profesionales para equipos informáticos y redes. Precios promocionales en oferta.',
-      categories: [
-        {
-          name: 'Soporte y Diagnóstico Base',
-          items: [
-            { name: 'Diagnóstico / revisión', original: 16564, current: 10790 },
-            { name: 'Conexión Remota x 1 HS', original: 13251, current: 8590 },
-            { name: 'Visita a domicilio x 1 HS', original: 29816, current: 19390 },
-            { name: 'Visita de Emergencia fuera de HS', original: 57974, current: 37690 },
-            { name: 'Configuración Router / Access Point', original: 36441, current: 23690 }
-          ]
-        },
-        {
-          name: 'Software y Optimización',
-          items: [
-            { name: 'Formateo e instalación SO sin BackUp', original: 57974, current: 37690 },
-            { name: 'Inicialización de equipo nuevo', original: 49691, current: 32290 },
-            { name: 'Reparación de inicio Windows', original: 43762, current: 28490 },
-            { name: 'Limpieza Software y Eliminación Malware', original: 29816, current: 19390 },
-            { name: 'Instalación de Drivers', original: 19877, current: 12990 },
-            { name: 'Instalación Programas Comerciales / OpenSource', original: 16564, current: 10790 }
-          ]
-        },
-        {
-          name: 'Mantenimiento de Hardware',
-          items: [
-            { name: 'Limpieza Física + Formateo + BackUp + Cambio SSD', original: 66169, current: 42990 },
-            { name: 'Armado de PC básica desde 0', original: 82820, current: 53890 },
-            { name: 'Limpieza profunda Hardware + Pasta Térmica', original: 29816, current: 19390 },
-            { name: 'Cambio de Pantalla o Flex (Notebooks)', original: 41411, current: 26990 },
-            { name: 'Cambio de Teclado (Notebooks)', original: 24846, current: 16190 }
-          ]
-        }
-      ]
-    },
-    contact: {
-      title: 'Contacto',
-      getInTouch: 'Ponte en contacto',
-      desc: "Aunque actualmente no estoy buscando nuevas oportunidades, mi bandeja de entrada siempre está abierta. Ya sea que tengas una pregunta o simplemente quieras saludar, ¡haré todo lo posible para responderte!",
-      sayHello: 'Di Hola'
-    },
-    footer: {
-      rights: 'Todos los derechos reservados.',
-      builtBy: 'Diseñado y Construido por'
-    }
-  }
-};
+type Theme = 'light' | 'dark';
 
-// Valores fijos (no aleatorios) para que el servidor y el navegador dibujen
-// lo mismo; con Math.random() React marcaba un error de hidratación.
-const initialParticles = [...Array(10)].map((_, i) => ({
-  id: i,
-  left: (i * 37 + 11) % 100,
-  delay: (i * 1.3) % 5,
-  duration: 10 + ((i * 7) % 10),
-  text: ['{ }', '</>', '();', '=>'][(i * 3) % 4]
-}));
-
-export default function Portfolio() {
-  const [theme, setTheme] = useState('dark');
-  const [lang, setLang] = useState<'en' | 'es'>('es');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  const t = translations[lang];
-
+function useTheme(): [Theme | null, () => void] {
+  // null = sigue el tema del sistema hasta que la persona elige uno.
+  const [theme, setTheme] = useState<Theme | null>(null);
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    try {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') setTheme(saved);
+    } catch {}
+  }, []);
+  const toggle = () => {
+    const current = theme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = current === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('theme', next); } catch {}
+  };
+  return [theme, toggle];
+}
+
+// ---------- tarjeta en vivo del servidor de casa ----------
+
+function LiveCard({ t }: { t: (typeof content)['es']['live'] }) {
+  const [status, setStatus] = useState<PublicStatus | 'loading'>('loading');
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      fetch('/api/status')
+        .then((r) => r.json())
+        .then((s: PublicStatus) => alive && setStatus(s))
+        .catch(() => alive && setStatus({ available: false }));
+    load();
+    const id = setInterval(() => !document.hidden && load(), 60_000);
+    return () => { alive = false; clearInterval(id); };
   }, []);
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+  const state = status === 'loading' ? 'loading' : !status.available ? 'unknown' : status.online ? 'online' : 'offline';
+  const label = { loading: t.checking, unknown: t.unknown, online: t.online, offline: t.offline }[state];
+  const facts: string[] = [];
+  if (status !== 'loading' && status.available && status.online) {
+    if (status.uptimeDays != null) facts.push(t.uptime(status.uptimeDays));
+    if (status.cpuTemp != null) facts.push(t.temp(status.cpuTemp));
+    if (status.gameServers && status.gameServers.total > 0) facts.push(t.games(status.gameServers.running, status.gameServers.total));
+    if (status.backupOk) facts.push(t.backup);
+  }
+
+  return (
+    <aside className="p-live" aria-labelledby="live-title" aria-live="polite">
+      <PcTower className={`p-live-art s-${state}`} />
+      <div className="p-live-body">
+        <div className="p-live-head">
+          <h2 id="live-title">{t.title}</h2>
+          <span className={`p-status s-${state}`}>{label}</span>
+        </div>
+        {facts.length > 0 && (
+          <ul className="p-live-facts">
+            {facts.map((f) => <li key={f}>{f}</li>)}
+          </ul>
+        )}
+        <p className="p-live-text">{t.body}</p>
+        <a className="p-link" href="#servidor">{t.how}</a>
+      </div>
+    </aside>
+  );
+}
+
+// ---------- cotización rápida ----------
+
+function QuoteBuilder({ t }: { t: (typeof content)['es']['tech'] }) {
+  const [picked, setPicked] = useState<string[]>([]);
+  const [note, setNote] = useState('');
+  const all = useMemo(() => t.groups.flatMap((g) => g.items), [t]);
+  // Si cambia el idioma, se desmarca todo: los nombres son otros.
+  useEffect(() => setPicked([]), [t]);
+
+  const toggle = (item: string) => setPicked((p) => (p.includes(item) ? p.filter((x) => x !== item) : [...p, item]));
+  const ordered = all.filter((i) => picked.includes(i));
+
+  return (
+    <div className="p-quote">
+      <div className="p-quote-groups">
+        {t.groups.map((g) => (
+          <fieldset key={g.name} className="p-quote-group">
+            <legend>{g.name}</legend>
+            {g.items.map((item) => (
+              <label key={item} className="p-check">
+                <input type="checkbox" checked={picked.includes(item)} onChange={() => toggle(item)} />
+                <span className="p-check-box" aria-hidden><Check /></span>
+                <span>{item}</span>
+              </label>
+            ))}
+          </fieldset>
+        ))}
+      </div>
+
+      <label className="p-note">
+        <span>{t.note}</span>
+        <textarea id="quote-note" rows={2} value={note} placeholder={t.notePlaceholder} onChange={(e) => setNote(e.target.value)} maxLength={400} />
+      </label>
+
+      <div className="p-quote-bar">
+        <p className="p-quote-count" aria-live="polite">{t.selected(picked.length)}</p>
+        {picked.length > 0 && (
+          <button type="button" className="p-btn-text" onClick={() => setPicked([])}>{t.clear}</button>
+        )}
+        <a className="p-btn p-btn-primary" href={waLink(t.message(ordered, note.trim()))} target="_blank" rel="noopener noreferrer">
+          <MessageCircle aria-hidden /> {t.send}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ---------- página ----------
+
+export default function Portfolio() {
+  const [lang, setLang] = useState<Lang>('es');
+  const [, toggleTheme] = useTheme();
+  const c = content[lang];
 
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
 
-  const toggleTheme = () => {
-    setTheme(t => t === 'dark' ? 'light' : 'dark');
-  };
-
   return (
-    <main className="min-h-screen">
-      <header className={`main-header ${scrolled ? 'scrolled' : ''}`}>
-        <div className="nav-container">
-          <div className="nav-brand">
-            <div className="brand-logo">
-              <span className="logo-bracket">&lt;</span>
-              <span className="logo-text">Dev</span>
-              <span className="logo-bracket">/&gt;</span>
-            </div>
-          </div>
-          
-          <nav className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
-            <a href="#about" className="nav-link">
-              <User size={16} /> {t.nav.about}
-            </a>
-            <a href="#skills" className="nav-link">
-              <Code2 size={16} /> {t.nav.skills}
-            </a>
-            <a href="#projects" className="nav-link">
-              <Briefcase size={16} /> {t.nav.projects}
-            </a>
-            <a href="#services" className="nav-link">
-              <Database size={16} /> {t.nav.services}
-            </a>
-            <a href="#contact" className="nav-link">
-              <Mail size={16} /> {t.nav.contact}
-            </a>
-          </nav>
+    <div className="p-site">
+      <a className="p-skip" href="#contenido">{lang === 'es' ? 'Saltar al contenido' : 'Skip to content'}</a>
 
-          <div className="nav-controls">
-            <button 
-              className="lang-toggle" 
-              onClick={() => setLang(lang === 'en' ? 'es' : 'en')}
-              aria-label="Toggle Language"
-            >
-              <Globe size={18} />
-              <span className="uppercase">{lang}</span>
-            </button>
-            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle Theme">
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            <button 
-              className={`menu-toggle ${isMenuOpen ? 'active' : ''}`}
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              <span></span>
-              <span></span>
-              <span></span>
-            </button>
-          </div>
+      <header className="p-header">
+        <a href="#inicio" className="p-brand">Gonzalo Murguia</a>
+        <nav className="p-nav" aria-label={lang === 'es' ? 'Secciones' : 'Sections'}>
+          <a href="#tecnico">{c.nav.tech}</a>
+          <a href="#desarrollo">{c.nav.dev}</a>
+          <a href="#proyectos">{c.nav.projects}</a>
+          <a href="#contacto">{c.nav.contact}</a>
+        </nav>
+        <div className="p-tools">
+          <button type="button" className="p-icon-btn" onClick={() => setLang(lang === 'es' ? 'en' : 'es')} aria-label={c.nav.lang} title={c.nav.lang}>
+            {lang === 'es' ? 'EN' : 'ES'}
+          </button>
+          <button type="button" className="p-icon-btn" onClick={toggleTheme} aria-label={c.nav.theme} title={c.nav.theme}>
+            <Sun className="p-sun" aria-hidden />
+            <Moon className="p-moon" aria-hidden />
+          </button>
         </div>
       </header>
 
-      <div className="main-content">
-        <section className="hero-section" id="home">
-          <div className="hero-background">
-            <div className="code-grid-bg"></div>
-            <div className="floating-particles">
-              {initialParticles.map((p) => (
-                <div 
-                  key={p.id} 
-                  className="particle"
-                  style={{
-                    left: `${p.left}%`,
-                    animationDelay: `${p.delay}s`,
-                    animationDuration: `${p.duration}s`
-                  }}
-                >
-                  {p.text}
+      <main id="contenido">
+        <section id="inicio" className="p-hero">
+          <div className="p-hero-text">
+            <p className="p-who">{c.hero.who}</p>
+            <h1>{c.hero.title}</h1>
+            <p className="p-lede">{c.hero.lede}</p>
+            <div className="p-paths">
+              <a className="p-btn p-btn-primary" href="#tecnico">{c.hero.tech}</a>
+              <a className="p-btn" href="#desarrollo">{c.hero.dev}</a>
+            </div>
+            <a className="p-link" href="/cv.pdf" target="_blank" rel="noopener noreferrer"><Download aria-hidden /> {c.hero.cv}</a>
+          </div>
+          <LiveCard t={c.live} />
+        </section>
+
+        <section id="tecnico" className="p-section">
+          <div className="p-section-head">
+            <h2>{c.tech.title}</h2>
+            <p className="p-lede">{c.tech.lede}</p>
+            <ol className="p-steps">
+              {c.tech.steps.map((s) => <li key={s}>{s}</li>)}
+            </ol>
+          </div>
+          <QuoteBuilder t={c.tech} />
+        </section>
+
+        <section id="desarrollo" className="p-section">
+          <div className="p-section-head">
+            <h2>{c.dev.title}</h2>
+            <p className="p-lede">{c.dev.lede}</p>
+          </div>
+          <div className="p-dev">
+            <ol className="p-jobs">
+              {c.dev.jobs.map((j) => (
+                <li key={j.role} className="p-job">
+                  <p className="p-job-when">{j.when}</p>
+                  <div>
+                    <h3>{j.role}</h3>
+                    <p className="p-job-where">{j.where}</p>
+                    <p>{j.text}</p>
+                    <ul className="p-tags">{j.stack.map((s) => <li key={s}>{s}</li>)}</ul>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <div className="p-stack">
+              <h3>{c.dev.stackTitle}</h3>
+              {c.dev.stack.map((g) => (
+                <div key={g.name} className="p-stack-group">
+                  <p className="p-stack-name">{g.name}</p>
+                  <ul>{g.items.map((i) => <li key={i}>{i}</li>)}</ul>
                 </div>
               ))}
-            </div>
-          </div>
-
-          <div className="hero-container">
-            <div className="hero-content">
-              <div className="hero-greeting">
-                <Terminal size={20} />
-                <span>{t.hero.greeting}</span>
-                <span className="greeting-cursor">_</span>
-              </div>
-              
-              <h1 className="hero-name">
-                <span className="name-prefix">const</span>
-                <span className="name-operator">developer =</span>
-                <span className="name-value">&quot;Gonzalo Murguia&quot;</span>
-                <span className="name-suffix">;</span>
-              </h1>
-              
-              <h2 className="hero-title">
-                <span className="title-prefix">{t.hero.role}</span>
-              </h2>
-              
-              <p className="hero-description">
-                {t.hero.description}
-              </p>
-              
-              <div className="hero-buttons">
-                <a href="#projects" className="btn btn-primary">
-                  {t.hero.viewWork} <ChevronRight size={18} />
-                </a>
-                <a href="#contact" className="btn btn-secondary">
-                  {t.hero.contactMe}
-                </a>
-                <a href="/cv.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-secondary border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--bg-dark)]">
-                  {t.hero.downloadCV}
-                </a>
-              </div>
-              
-              <div className="hero-social">
-                <a href="https://github.com/TheSortty" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="GitHub">
-                  <Github size={24} />
-                </a>
-                <a href="https://www.linkedin.com/in/gonzalo-murguia-5135b23b4/" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="LinkedIn">
-                  <Linkedin size={24} />
-                </a>
-                <a href="https://wa.me/5492612407277?text=Hola%20Gonzalo!%20Vengo%20de%20tu%20portfolio%20web%20y%20me%20gustar%C3%ADa%20ponerme%20en%20contacto%20contigo." target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="WhatsApp">
-                  <MessageCircle size={24} />
-                </a>
-              </div>
-            </div>
-
-            <div className="hero-image-wrapper relative">
-              <Leaf className="absolute -top-12 -left-16 w-64 h-64 text-[var(--primary)] opacity-[0.03] -rotate-12 pointer-events-none z-0" />
-              <div className="hero-image-container">
-                <div className="profile-image-glow"></div>
-                <div className="profile-image-frame">
-                  <div className="profile-image bg-[var(--bg-dark)]">
-                    <img src="/GM-LOGO.png" alt="GM Logo" className="w-[60%] h-[60%] object-contain drop-shadow-[0_0_15px_rgba(127,175,155,0.4)] hover:scale-105 transition-transform duration-500" />
-                  </div>
-                </div>
-                
-                <div className="floating-badge badge-1">
-                  <Layout />
-                  <div className="badge-content">
-                    <span className="badge-title">Backend</span>
-                    <span className="badge-libs">Python, TypeScript</span>
-                  </div>
-                </div>
-                
-                <div className="floating-badge badge-2">
-                  <Server />
-                  <div className="badge-content">
-                    <span className="badge-title">Infrastructure</span>
-                    <span className="badge-libs">Linux, Docker</span>
-                  </div>
-                </div>
-                
-                <div className="floating-badge badge-3">
-                  <Database />
-                  <div className="badge-content">
-                    <span className="badge-title">Comms</span>
-                    <span className="badge-libs">Asterisk, VoIP</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="scroll-indicator">
-            <div className="scroll-mouse">
-              <div className="scroll-wheel"></div>
-            </div>
-            <span>Scroll Down</span>
-          </div>
-        </section>
-
-        <section className="section fade-in" id="about">
-          <div className="section-container">
-            <div className="section-header">
-              <span className="section-number">01.</span>
-              <h2 className="section-title">
-                <span className="title-bracket">&lt;</span>
-                <span className="title-text">{t.about.title}</span>
-                <span className="title-bracket">/&gt;</span>
-              </h2>
-            </div>
-            
-            <div className="about-content grid md:grid-cols-2 gap-12">
-              <div className="about-text text-lg text-[var(--text-secondary)] leading-relaxed">
-                <p className="mb-6">
-                  {t.about.p1}
-                </p>
-                <p>
-                  {t.about.p2}
-                </p>
-              </div>
-              <div className="about-stats grid grid-cols-2 gap-6">
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 }}
-                  className="stat-card bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)] text-center transition-transform hover:-translate-y-2"
-                >
-                  <h3 className="text-4xl font-bold text-[var(--primary)] mb-2">4+</h3>
-                  <p className="text-[var(--text-secondary)]">{t.about.stats.experience}</p>
-                </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 }}
-                  className="stat-card bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)] text-center transition-transform hover:-translate-y-2"
-                >
-                  <h3 className="text-4xl font-bold text-[var(--cyan)] mb-2">10+</h3>
-                  <p className="text-[var(--text-secondary)]">{t.about.stats.projects}</p>
-                </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3 }}
-                  className="stat-card bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)] text-center transition-transform hover:-translate-y-2"
-                >
-                  <h3 className="text-4xl font-bold text-[var(--accent)] mb-2">15+</h3>
-                  <p className="text-[var(--text-secondary)]">{t.about.stats.clients}</p>
-                </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.4 }}
-                  className="stat-card bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)] text-center transition-transform hover:-translate-y-2"
-                >
-                  <h3 className="text-4xl font-bold text-[var(--green)] mb-2">2+</h3>
-                  <p className="text-[var(--text-secondary)]">{t.about.stats.awards}</p>
-                </motion.div>
-              </div>
+              <a className="p-btn" href="/cv.pdf" target="_blank" rel="noopener noreferrer"><Download aria-hidden /> {c.hero.cv}</a>
             </div>
           </div>
         </section>
 
-        <section className="section fade-in" id="skills">
-          <div className="section-container">
-            <div className="section-header">
-              <span className="section-number">02.</span>
-              <h2 className="section-title">
-                <span className="title-bracket">&lt;</span>
-                <span className="title-text">{t.skills.title}</span>
-                <span className="title-bracket">/&gt;</span>
-              </h2>
-            </div>
-            
-            <div className="skills-grid grid md:grid-cols-3 gap-8">
-              <div className="skill-category bg-[var(--bg-card)] p-8 rounded-2xl border border-[var(--border)]">
-                <h3 className="category-title text-xl font-bold mb-6 text-[var(--text-primary)] flex items-center gap-3">
-                  <Layout className="text-[var(--primary)]" /> {t.skills.frontend}
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  <span className="tag">Python (FastAPI)</span>
-                  <span className="tag">TypeScript / Node.js</span>
-                  <span className="tag">n8n (Automation)</span>
-                </div>
-              </div>
-
-              <div className="skill-category bg-[var(--bg-card)] p-8 rounded-2xl border border-[var(--border)]">
-                <h3 className="category-title text-xl font-bold mb-6 text-[var(--text-primary)] flex items-center gap-3">
-                  <Server className="text-[var(--cyan)]" /> {t.skills.backend}
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  <span className="tag">Linux / Windows Server</span>
-                  <span className="tag">Docker / Networking</span>
-                  <span className="tag">Pterodactyl</span>
-                </div>
-              </div>
-
-              <div className="skill-category bg-[var(--bg-card)] p-8 rounded-2xl border border-[var(--border)]">
-                <h3 className="category-title text-xl font-bold mb-6 text-[var(--text-primary)] flex items-center gap-3">
-                  <Database className="text-[var(--green)]" /> {t.skills.database}
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  <span className="tag">VoIP / Asterisk</span>
-                  <span className="tag">Issabel / PJSIP</span>
-                  <span className="tag">Git / SQL</span>
-                </div>
-              </div>
-            </div>
+        <section id="proyectos" className="p-section">
+          <div className="p-section-head">
+            <h2>{c.projects.title}</h2>
+            <p className="p-lede">{c.projects.lede}</p>
           </div>
-        </section>
-
-        <section className="section fade-in" id="experience">
-          <div className="section-container">
-            <div className="section-header">
-              <span className="section-number">03.</span>
-              <h2 className="section-title">
-                <span className="title-bracket">&lt;</span>
-                <span className="title-text">{t.experience.title}</span>
-                <span className="title-bracket">/&gt;</span>
-              </h2>
-            </div>
-            
-            <div className="timeline">
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="timeline-item"
-              >
-                <div className="timeline-marker"></div>
-                <div className="timeline-content">
-                  <div className="timeline-header">
-                    <span className="timeline-year">2021 - {t.experience.present}</span>
-                    <span className="timeline-badge">{t.experience.fulltime}</span>
-                  </div>
-                  <h3 className="timeline-title">{t.experience.jobs[0].title}</h3>
-                  <div className="timeline-company">
-                    <Briefcase size={16} /> {t.experience.jobs[0].company}
-                  </div>
-                  <p className="timeline-description">
-                    {t.experience.jobs[0].desc}
-                  </p>
-                  <div className="timeline-achievements">
-                    {t.experience.jobs[0].achievements.map((ach, i) => (
-                      <div key={i} className="achievement-item">
-                        <ChevronRight size={16} className="text-[var(--green)]" />
-                        <span>{ach}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="timeline-tags">
-                    <span className="tag">Python</span>
-                    <span className="tag">FastAPI</span>
-                    <span className="tag">n8n</span>
-                    <span className="tag">Asterisk</span>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="timeline-item"
-              >
-                <div className="timeline-marker"></div>
-                <div className="timeline-content">
-                  <div className="timeline-header">
-                    <span className="timeline-year">Jul. 2025 - Sep. 2025</span>
-                    <span className="timeline-badge">{t.experience.fulltime}</span>
-                  </div>
-                  <h3 className="timeline-title">{t.experience.jobs[1].title}</h3>
-                  <div className="timeline-company">
-                    <Briefcase size={16} /> {t.experience.jobs[1].company}
-                  </div>
-                  <p className="timeline-description">
-                    {t.experience.jobs[1].desc}
-                  </p>
-                  <div className="timeline-achievements">
-                    {t.experience.jobs[1].achievements.map((ach, i) => (
-                      <div key={i} className="achievement-item">
-                        <ChevronRight size={16} className="text-[var(--green)]" />
-                        <span>{ach}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="timeline-tags">
-                    <span className="tag">TypeScript</span>
-                    <span className="tag">React</span>
-                    <span className="tag">Node.js</span>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-
-        <section className="section fade-in" id="projects">
-          <div className="section-container">
-            <div className="section-header">
-              <span className="section-number">04.</span>
-              <h2 className="section-title">
-                <span className="title-bracket">&lt;</span>
-                <span className="title-text">{t.projects.title}</span>
-                <span className="title-bracket">/&gt;</span>
-              </h2>
-            </div>
-            
-            <div className="projects-grid grid md:grid-cols-2 lg:grid-cols-2 gap-8">
-              {t.projects.items.map((project, index) => (
-                <motion.div 
-                  key={index} 
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="project-card bg-[var(--bg-card)] rounded-none border border-[var(--border)] overflow-hidden group hover:-translate-y-2 transition-transform duration-300 flex flex-col h-full"
-                >
-                  <div className="project-image aspect-video w-full relative overflow-hidden bg-[var(--bg-darker)] flex items-center justify-center">
-                    {project.image ? (
-                      <img src={project.image} alt={project.name} className="w-full h-full object-cover origin-top scale-[1.35] group-hover:scale-[1.40] transition-transform duration-500" />
-                    ) : (
-                      <div className="project-placeholder py-12 flex justify-center w-full">
-                        <Code2 size={48} className="text-[var(--primary)] opacity-50" />
-                      </div>
-                    )}
-                    <div className="project-overlay">
-                      <div className="project-links">
-                        <a href={`https://${project.url}`} target="_blank" rel="noopener noreferrer" className="project-link" aria-label="Live Demo"><Globe size={20} /></a>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-12 flex flex-col flex-1">
-                    <h3 className="project-title text-3xl font-bold text-[var(--primary)] mb-6">{project.name}</h3>
-                    <p className="project-desc text-[var(--text-secondary)] mb-12 flex-1 leading-loose text-[1.05rem]">
-                      {project.desc}
-                    </p>
-                    <div className="project-tags flex flex-wrap gap-4 mt-auto pt-8 border-t border-[var(--border)]/20">
-                      {project.tags.map((tag, i) => (
-                        <span key={i} className="tag">{tag}</span>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="section fade-in relative overflow-hidden" id="services">
-          <div className="section-container relative z-10">
-            <div className="section-header">
-              <span className="section-number">05.</span>
-              <h2 className="section-title">
-                <span className="title-bracket">&lt;</span>
-                <span className="title-text">{t.services.title}</span>
-                <span className="title-bracket">/&gt;</span>
-              </h2>
-            </div>
-            <p className="text-[var(--text-secondary)] mb-16 max-w-2xl text-lg leading-relaxed">{t.services.desc}</p>
-            
-            {/* ═══ MEGA MODAL ═══ */}
-            <div className="relative border-2 border-[var(--border)] bg-[var(--bg-card)] shadow-[0_0_60px_rgba(16,185,129,0.06)] overflow-hidden">
-
-              {/* Top gradient accent bar */}
-              <div className="h-1.5 w-full bg-gradient-to-r from-[var(--primary)] via-[var(--cyan)] to-[var(--purple)]"></div>
-
-              {/* Decorative leaf SVGs */}
-              <Leaf className="absolute top-8 right-8 w-32 h-32 text-[var(--primary)] opacity-[0.04] rotate-[30deg] pointer-events-none" />
-              <Leaf className="absolute bottom-24 left-6 w-24 h-24 text-[var(--cyan)] opacity-[0.04] -rotate-[20deg] pointer-events-none" />
-              <Leaf className="absolute top-1/2 right-1/3 w-40 h-40 text-[var(--purple)] opacity-[0.02] rotate-[60deg] pointer-events-none" />
-
-              {/* 3-Column Grid */}
-              <div className="grid lg:grid-cols-3 relative z-10">
-                {t.services.categories.map((cat: any, idx: number) => (
-                  <div 
-                    key={idx} 
-                    className={`flex flex-col ${idx < t.services.categories.length - 1 ? 'border-b lg:border-b-0 lg:border-r border-[var(--border)]' : ''}`}
-                  >
-                    {/* Category Header */}
-                    <div className="px-12 py-12 bg-gradient-to-b from-black/30 to-transparent border-b border-[var(--border)] flex flex-col items-center justify-center">
-                      <div className="flex items-center justify-center gap-4">
-                        <Leaf size={22} className="text-[var(--primary)] opacity-50" />
-                        <h3 className="text-[0.9rem] font-black text-[var(--primary)] uppercase tracking-[0.3em] text-center">
-                          {cat.name}
-                        </h3>
-                        <Leaf size={22} className="text-[var(--primary)] opacity-50 scale-x-[-1]" />
-                      </div>
-                    </div>
-                    
-                    {/* Service Items */}
-                    <div className="px-12 py-12 flex flex-col gap-0 flex-1">
-                      {cat.items.map((item: any, i: number) => (
-                        <div 
-                          key={i} 
-                          className={`group py-8 ${i < cat.items.length - 1 ? 'border-b border-[var(--border)]/20' : ''}`}
-                        >
-                          {/* Service Name — centered */}
-                          <p className="text-[var(--text-secondary)] text-[1rem] leading-relaxed group-hover:text-[var(--text-primary)] transition-colors text-center mb-5">
-                            {item.name}
-                          </p>
-                          {/* Prices — centered */}
-                          <div className="flex items-center justify-center gap-4">
-                            <span className="text-xs text-[var(--text-muted)] line-through">
-                              ${(item.original).toLocaleString('es-AR')}
-                            </span>
-                            <span className="text-xl font-black tracking-tight text-[var(--cyan)]">
-                              ${(item.current).toLocaleString('es-AR')}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* ═══ Footer CTA ═══ */}
-              <div className="border-t-2 border-[var(--border)] bg-gradient-to-b from-black/50 to-black/30 px-12 py-20 flex flex-col items-center gap-6 relative z-20">
-                <p className="text-[var(--text-muted)] text-sm tracking-[0.2em] font-medium uppercase mb-4">
-                  {t.services.title === 'Services' ? '— Get a quote now —' : '— Obtené tu presupuesto ahora —'}
-                </p>
-                <a 
-                  href="https://wa.me/5492612407277?text=Hola%20Gonzalo!%20Vengo%20de%20tu%20portfolio%20web%20y%20estoy%20muy%20interesado%20en%20tus%20Servicios%20T%C3%A9cnicos.%20%C2%BFPodr%C3%ADas%20darme%20m%C3%A1s%20informaci%C3%B3n%3F" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="btn btn-primary text-lg px-14 py-5 inline-flex items-center gap-3 shadow-[0_0_25px_rgba(16,185,129,0.25)] hover:scale-105 hover:shadow-[0_0_50px_rgba(16,185,129,0.45)] transition-all font-bold group"
-                >
-                  <MessageCircle size={26} className="group-hover:-rotate-12 transition-transform duration-300" />
-                  {t.services.title === 'Services' ? 'Request via WhatsApp' : 'Solicitar por WhatsApp'}
+          <div className="p-projects">
+            {c.projects.items.map((p) => (
+              <article key={p.name} className="p-project">
+                <a href={p.url} target="_blank" rel="noopener noreferrer" className="p-project-shot" aria-label={`${c.projects.visit}: ${p.name}`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.image} alt="" loading="lazy" />
                 </a>
+                <div className="p-project-text">
+                  <h3>{p.name}</h3>
+                  <p>{p.text}</p>
+                  <ul className="p-tags">{p.stack.map((s) => <li key={s}>{s}</li>)}</ul>
+                  <a className="p-link" href={p.url} target="_blank" rel="noopener noreferrer">{c.projects.visit} <ArrowUpRight aria-hidden /></a>
+                </div>
+              </article>
+            ))}
+            <article id="servidor" className="p-project p-project-home">
+              <div className="p-project-shot p-project-art" aria-hidden>
+                <PcTower className="s-online" />
               </div>
-            </div>
-
+              <div className="p-project-text">
+                <h3>{c.projects.home.name}</h3>
+                <p>{c.projects.home.text}</p>
+                <ul className="p-tags">{c.projects.home.stack.map((s) => <li key={s}>{s}</li>)}</ul>
+              </div>
+            </article>
           </div>
         </section>
 
-        <section className="section fade-in" id="contact">
-          <div className="section-container max-w-2xl text-center mx-auto">
-            <div className="section-header justify-center mb-12">
-              <span className="section-number">06.</span>
-              <h2 className="section-title">
-                <span className="title-bracket">&lt;</span>
-                <span className="title-text">{t.contact.title}</span>
-                <span className="title-bracket">/&gt;</span>
-              </h2>
-            </div>
-            
-            <div className="contact-content">
-              <div className="contact-info">
-                <motion.div 
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  className="contact-item"
-                >
-                  <div className="contact-icon">
-                    <Mail size={24} />
-                  </div>
-                  <div className="contact-details">
-                    <span className="contact-label">Email</span>
-                    <a href="mailto:gonzalo.d.murguia@gmail.com" className="contact-value">gonzalo.d.murguia@gmail.com</a>
-                  </div>
-                </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="contact-item"
-                >
-                  <div className="contact-icon">
-                    <Linkedin size={24} />
-                  </div>
-                  <div className="contact-details">
-                    <span className="contact-label">LinkedIn</span>
-                    <a href="https://www.linkedin.com/in/gonzalo-murguia-5135b23b4/" target="_blank" rel="noopener noreferrer" className="contact-value">linkedin.com/in/gonzalo-murguia</a>
-                  </div>
-                </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                  className="contact-item"
-                >
-                  <div className="contact-icon">
-                    <MessageCircle size={24} />
-                  </div>
-                  <div className="contact-details">
-                    <span className="contact-label">WhatsApp</span>
-                    <a href="https://wa.me/5492612407277?text=Hola%20Gonzalo!%20Vengo%20de%20tu%20portfolio%20web%20y%20me%20gustar%C3%ADa%20ponerme%20en%20contacto%20contigo." target="_blank" rel="noopener noreferrer" className="contact-value">+54 9 261 240-7277</a>
-                  </div>
-                </motion.div>
-              </div>
-              
-            </div>
+        <section id="contacto" className="p-section p-contact">
+          <div className="p-section-head">
+            <h2>{c.contact.title}</h2>
+            <p className="p-lede">{c.contact.lede}</p>
           </div>
+          <div className="p-contact-links">
+            <a className="p-btn p-btn-primary" href={waLink(c.contact.whatsappText)} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden /> {c.contact.whatsapp}</a>
+            <a className="p-btn" href={`mailto:${EMAIL}`}><Mail aria-hidden /> {c.contact.email}</a>
+            <a className="p-btn" href={LINKEDIN} target="_blank" rel="noopener noreferrer"><Linkedin aria-hidden /> {c.contact.linkedin}</a>
+            <a className="p-btn" href={GITHUB} target="_blank" rel="noopener noreferrer"><Github aria-hidden /> {c.contact.github}</a>
+          </div>
+          <p className="p-mail">{EMAIL}</p>
         </section>
+      </main>
 
-        <footer className="main-footer">
-          <div className="footer-container">
-            <div className="footer-content flex-col md:flex-row gap-6">
-              <div className="footer-text-wrapper">
-                <div className="footer-text">
-                  <span className="footer-copyright">© {new Date().getFullYear()} Gonzalo Murguia.</span>
-                  <span className="footer-divider">|</span>
-                  <span className="footer-built">{t.footer.rights}</span>
-                </div>
-                <div className="footer-author">
-                  <span className="footer-by-text">{t.footer.builtBy}</span>
-                  <a href="https://github.com/TheSortty" target="_blank" rel="noopener noreferrer" className="footer-author-link">
-                    <Code2 size={14} /> Gonzalo Murguia
-                  </a>
-                </div>
-              </div>
-              <div className="footer-social">
-                <a href="https://github.com/TheSortty" target="_blank" rel="noopener noreferrer" className="footer-social-link" aria-label="GitHub"><Github size={20} /></a>
-                <a href="https://www.linkedin.com/in/gonzalo-murguia-5135b23b4/" target="_blank" rel="noopener noreferrer" className="footer-social-link" aria-label="LinkedIn"><Linkedin size={20} /></a>
-                <a href="/dashboard" className="footer-social-link" aria-label="Panel privado" title="Panel privado"><Lock size={18} /></a>
-              </div>
-            </div>
-          </div>
-        </footer>
-      </div>
-    </main>
+      <footer className="p-footer">
+        <span>© {new Date().getFullYear()} Gonzalo Murguia</span>
+        <a href="/dashboard" className="p-footer-panel" aria-label={c.footer.panel} title={c.footer.panel}><Lock aria-hidden /></a>
+      </footer>
+    </div>
   );
 }
