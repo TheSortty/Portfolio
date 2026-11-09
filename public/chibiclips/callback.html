@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ChibiClips · TikTok connected</title>
+<style>
+:root { --bg: #0D1020; --fg: #E8E9F1; --muted: #A2A7BE; --a: #F5C04E; --b: #F0605D; --card: #151A30; color-scheme: dark }
+* { box-sizing: border-box }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--fg); font: 17px/1.6 system-ui, sans-serif; padding: 24px 16px }
+main { max-width: 34rem; width: 100%; display: flex; flex-direction: column; gap: 14px }
+h1 { margin: 0; font-size: 1.8rem }
+p { margin: 0; color: var(--muted) }
+.box { background: var(--card); border-radius: 12px; padding: 14px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+code { font: 15px ui-monospace, Menlo, monospace; word-break: break-all; user-select: all; flex: 1 1 18rem }
+button { font: 600 14px system-ui; border: 2px solid var(--fg); background: transparent; color: var(--fg); border-radius: 999px; padding: 6px 14px; cursor: pointer }
+.err { color: var(--b) }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="t">Connecting…</h1>
+  <p id="m">Reading the answer from TikTok.</p>
+  <div class="box" id="box" hidden><code id="code"></code><button type="button" id="copy">Copy code</button></div>
+</main>
+<script>
+// TikTok Login Kit sends the user back here with ?code=…&state=… (or ?error=…).
+// The code is exchanged for tokens on our server, never in this page; it expires in a few minutes.
+var q = new URLSearchParams(location.search), code = q.get("code"), err = q.get("error");
+var t = document.getElementById("t"), m = document.getElementById("m");
+if (code) {
+  t.textContent = "TikTok connected";
+  m.textContent = "Copy this code and give it to the server within 5 minutes.";
+  document.getElementById("code").textContent = code;
+  document.getElementById("box").hidden = false;
+} else if (err) {
+  t.textContent = "TikTok did not connect";
+  m.textContent = (q.get("error_description") || err);
+  m.className = "err";
+} else {
+  t.textContent = "ChibiClips";
+  m.textContent = "This page receives the answer after signing in with TikTok.";
+}
+document.getElementById("copy").addEventListener("click", function () {
+  var b = this;
+  try { navigator.clipboard.writeText(code).then(function () { b.textContent = "Copied"; }); } catch (e) {}
+});
+</script>
+</body>
+</html>

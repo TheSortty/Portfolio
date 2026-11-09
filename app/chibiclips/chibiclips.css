@@ -1,0 +1,35 @@
+/* ChibiClips demo pages (/chibiclips): dark, one column, A/B brand bubble. */
+.cc {
+  --bg: #0d1020; --fg: #e8e9f1; --muted: #a2a7be; --rule: #2a2f4a; --card: #151a30;
+  --a: #f5c04e; --b: #f0605d;
+  min-height: 100vh; background: var(--bg); color: var(--fg); color-scheme: dark;
+  font: 17px/1.6 var(--font-sans), system-ui, sans-serif;
+  padding: 48px max(16px, env(safe-area-inset-left, 0px)) 64px;
+}
+.cc-wrap { max-width: 46rem; margin: 0 auto; display: flex; flex-direction: column; gap: 20px }
+.cc-mark { display: inline-flex; width: 64px; height: 44px; border-radius: 12px; overflow: hidden; border: 3px solid var(--fg); font-weight: 700; font-size: 24px }
+.cc-mark span { flex: 1; display: grid; place-items: center }
+.cc-mark span:first-child { background: var(--a); color: #0b0e1c }
+.cc-mark span:last-child { background: var(--b); color: #fff }
+.cc h1 { margin: 0; font-size: clamp(2rem, 6vw, 2.8rem); line-height: 1.1 }
+.cc h2 { margin: 8px 0 0; font-size: 1.25rem }
+.cc p { margin: 0; color: var(--muted); max-width: 60ch }
+.cc a { color: var(--fg) }
+.cc-btn { align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; padding: 12px 22px; border-radius: 999px; background: var(--fg); color: var(--bg) !important; font-weight: 600; text-decoration: none; border: 0 }
+.cc-btn.is-alt { background: transparent; color: var(--fg) !important; border: 2px solid var(--fg) }
+.cc-card { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 18px }
+.cc-user { display: flex; align-items: center; gap: 14px }
+.cc-user img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; background: var(--rule) }
+.cc-user strong { font-size: 1.2rem }
+.cc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 12px }
+.cc-stats div { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px }
+.cc-stats b { display: block; font-size: 1.5rem; font-variant-numeric: tabular-nums }
+.cc-stats span { color: var(--muted); font-size: 14px }
+.cc-table { width: 100%; overflow-x: auto }
+.cc-table table { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums }
+.cc-table th, .cc-table td { padding: 8px 10px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap }
+.cc-table th:first-child, .cc-table td:first-child { text-align: left; white-space: normal; min-width: 12rem }
+.cc-table th { color: var(--muted); font-weight: 500 }
+.cc-ok { border-color: var(--a) }
+.cc-err { border-color: var(--b) }
+.cc-foot { color: var(--muted); font-size: 14px }
