@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ChibiClips Terms and Privacy</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column, a sticky A/B switch between the two documents, legal numbering because clauses are referenced. */
+:root {
+  --bg: #F6F5F1; --fg: #1B1E2E; --muted: #5C6177; --rule: #D9D7CF;
+  --a: #F2B532; --b: #E0413F; --card: #FFFFFF;
+  --display: "Oswald", "Arial Narrow", system-ui, sans-serif;
+  --body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0D1020; --fg: #E8E9F1; --muted: #A2A7BE; --rule: #2A2F4A; --a: #F5C04E; --b: #F0605D; --card: #151A30; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #0D1020; --fg: #E8E9F1; --muted: #A2A7BE; --rule: #2A2F4A; --a: #F5C04E; --b: #F0605D; --card: #151A30; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 18px/1.65 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 64px }
+.wrap { max-width: 44rem; margin: 0 auto }
+header { padding-block: 48px 24px; display: flex; flex-direction: column; gap: 14px }
+.mark { display: inline-flex; width: 64px; height: 44px; border-radius: 12px; overflow: hidden; border: 3px solid var(--fg); font: 700 26px/1 var(--display) }
+.mark span { flex: 1; display: grid; place-items: center }
+.mark span:first-child { background: var(--a); color: #0B0E1C }
+.mark span:last-child { background: var(--b); color: #fff }
+h1 { font: 700 clamp(2.2rem, 6vw, 3.2rem)/1.05 var(--display); letter-spacing: .01em; margin: 0; text-wrap: balance }
+.lede { color: var(--muted); margin: 0; max-width: 38rem }
+.meta { font: 500 13px/1.4 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase }
+nav { position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); padding-block: 10px; border-bottom: 1px solid var(--rule); display: flex; gap: 8px; z-index: 5 }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg) }
+nav a { font: 600 15px/1 var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--fg); text-decoration: none; padding: 10px 14px; border-radius: 999px; border: 2px solid var(--rule) }
+nav a:hover, nav a:focus-visible { border-color: var(--fg); outline: none }
+section { padding-top: 32px; scroll-margin-top: 70px }
+h2 { font: 700 2rem/1.1 var(--display); margin: 0 0 6px; display: flex; align-items: center; gap: 12px }
+h2 i { width: 14px; height: 14px; border-radius: 4px; display: inline-block }
+#terms h2 i { background: var(--a) } #privacy h2 i { background: var(--b) }
+h3 { font: 600 1.15rem/1.3 var(--body); margin: 28px 0 6px }
+h3 b { font: 500 .85rem/1 var(--mono); color: var(--muted); margin-right: 8px }
+p, li { max-width: 65ch } ul { padding-left: 1.2em } li { margin-block: 4px }
+.contact { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center }
+.contact code { font: 500 15px var(--mono); user-select: all; word-break: break-all }
+.contact button { font: 600 14px var(--display); letter-spacing: .06em; text-transform: uppercase; border: 2px solid var(--fg); background: transparent; color: var(--fg); border-radius: 999px; padding: 6px 14px; cursor: pointer }
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 15px }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="mark" aria-hidden="true"><span>A</span><span>B</span></div>
+    <h1>ChibiClips Terms and Privacy</h1>
+    <p class="lede">ChibiClips makes short animated stories where the audience decides what happens next by voting in the comments. These terms and this policy cover the ChibiClips app, an internal tool that connects only to our own TikTok accounts.</p>
+    <div class="meta">Last updated: November 8, 2026</div>
+  </header>
+
+  <nav aria-label="Documents"><a href="#terms">A · Terms of Service</a><a href="#privacy">B · Privacy Policy</a></nav>
+
+  <section id="terms">
+    <h2><i></i>Terms of Service</h2>
+    <h3><b>1</b>Who we are</h3>
+    <p>ChibiClips is an independent animation channel that publishes interactive stories (such as PORTERO, SEGUNDA VIDA and NIVEL) on TikTok, Instagram and YouTube, in English and Spanish.</p>
+    <h3><b>2</b>What the app does</h3>
+    <p>The ChibiClips app is used only by the ChibiClips team, with the ChibiClips TikTok accounts (English and Spanish). It does three things:</p>
+    <ul>
+      <li>signs in to our own accounts with TikTok Login Kit;</li>
+      <li>reads basic profile information, follower counts and the statistics of our own videos (views, likes, comments, shares) to prepare a performance report;</li>
+      <li>uploads our own finished episodes to our own accounts as drafts, which we review and publish inside the TikTok app.</li>
+    </ul>
+    <p>The app is not offered to the public and does not let anyone else sign in.</p>
+    <h3><b>3</b>Acceptable use</h3>
+    <p>The app may be used only with accounts owned by ChibiClips and only in line with TikTok's Terms of Service, Community Guidelines and Developer Terms.</p>
+    <h3><b>4</b>Content</h3>
+    <p>All episodes uploaded through the app are original work owned by ChibiClips. Comments and votes posted by viewers on TikTok remain subject to TikTok's own terms.</p>
+    <h3><b>5</b>No warranty</h3>
+    <p>The app is provided as is, for internal use. We may change or stop it at any time.</p>
+    <h3><b>6</b>Changes</h3>
+    <p>We may update these terms. The date at the top of this page shows the latest version.</p>
+  </section>
+
+  <section id="privacy">
+    <h2><i></i>Privacy Policy</h2>
+    <h3><b>1</b>Data we access</h3>
+    <p>Only data from the ChibiClips accounts that sign in to the app:</p>
+    <ul>
+      <li>basic profile information (display name, avatar, account identifier) through <code>user.info.basic</code>;</li>
+      <li>account statistics (followers, following, likes, video count) through <code>user.info.stats</code>;</li>
+      <li>our own videos and their public counts (views, likes, comments, shares) through <code>video.list</code>.</li>
+    </ul>
+    <p>We do not collect data about viewers, followers or any other TikTok user.</p>
+    <h3><b>2</b>How we use it</h3>
+    <p>Only to prepare an internal report, twice a day, that tells our team how each episode is performing, and to decide which story continues. We do not sell, rent or share this data, and we do not use it for advertising.</p>
+    <h3><b>3</b>Storage and security</h3>
+    <p>Access tokens are stored on our own server, readable only by the account that runs the report, and are never published. Reports are kept in our private storage.</p>
+    <h3><b>4</b>Retention and deletion</h3>
+    <p>We keep statistics as long as they are useful for the report. Disconnecting the app from the account in TikTok's settings stops all access; we then delete the stored tokens.</p>
+    <h3><b>5</b>Children</h3>
+    <p>The app is not directed to children and processes no data from minors.</p>
+    <h3><b>6</b>Contact</h3>
+    <div class="contact"><code id="mail">chibiclipsts@gmail.com</code><button type="button" id="copy">Copy email</button></div>
+  </section>
+
+  <footer>ChibiClips · Animated stories where you decide what happens.</footer>
+</div>
+
+<script>
+document.getElementById("copy").addEventListener("click", function () {
+  var b = this, t = document.getElementById("mail").textContent;
+  var done = function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy email"; }, 1600); };
+  try {
+    navigator.clipboard.writeText(t).then(done, function () { var r = document.createRange(); r.selectNodeContents(document.getElementById("mail")); var s = getSelection(); s.removeAllRanges(); s.addRange(r); });
+  } catch (e) { var r = document.createRange(); r.selectNodeContents(document.getElementById("mail")); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+});
+</script>
+</body>
+</html>
